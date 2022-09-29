@@ -1,6 +1,6 @@
 #include <Arduino.h>
-byte tempBuffer[6]; 
 char packetSize = 3;
+byte tempBuffer[3]; 
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -8,8 +8,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if(Serial.available() >= packetSize && (Serial.available() % packetSize == 0))  {
-    Serial.readBytes(tempBuffer, packetSize);
+  if(Serial.available() >= packetSize && (Serial.available() % packetSize == 0))  { // Make sure there is an even 3 amount of data points and at least 3 exist
+    Serial.readBytes(tempBuffer, packetSize); // Read 3 and place them in a temp buffer
     Serial.print("Address: ");
     Serial.print(tempBuffer[0]);
     Serial.print("\t");
