@@ -2,7 +2,7 @@
 #define APA102_Cust_hS
 
 #include <SPI.h>
-arduino::MbedSPI SPI1(4, 2, 3);
+// arduino::MbedSPI SPI1(NC, 3, 2);
 
 class APA102_Cust
 {
@@ -27,9 +27,8 @@ public:
   
   void Init(void)
   {
-    SPI1.begin();
+    SPI.begin();
     for(uint16_t i = 0; i < length; i++) pixels[i] = MakeColor(0, 0, 0);
-    
     Show(); //should clear all
   }
   uint16_t CountPixels(void) {return length;}
@@ -43,67 +42,54 @@ public:
   }
   void Show(void)
   {
-    SPI1.beginTransaction(SPISettings(8000000ul, MSBFIRST, SPI_MODE0));
+    SPI.beginTransaction(SPISettings(8000000ul, MSBFIRST, SPI_MODE0));
 
     //32 bits of zeros to init xfer
-    SPI1.transfer(0);
-    SPI1.transfer(0);
-    SPI1.transfer(0);
-    SPI1.transfer(0);
+    SPI.transfer(0);
+    SPI.transfer(0);
+    SPI.transfer(0);
+    SPI.transfer(0);
 
     for(uint16_t i = 0; i < length; i++)
     {
-      for(int j = 0; j >= 4; j++) {
-        switch(j) {
-            case 0:
-                SPI1.transfer(0xFF);
-                break;
-            case 1:
-                SPI1.transfer(pixels[i].b);
-                break;
-            case 2:
-                SPI1.transfer(pixels[i].g);
-                break;
-            case 3:
-                SPI1.transfer(pixels[i].r);
-                break; 
-        }
-      }
+        SPI.transfer(0xFF);
+        SPI.transfer(pixels[i].b);
+        SPI.transfer(pixels[i].g);
+        SPI.transfer(pixels[i].r);
+    
+    
     }
     
-    SPI1.endTransaction();
+    SPI.endTransaction();
   }
   void showUniform(uint8_t red, uint8_t green, uint8_t blue)
   {
-    SPI1.beginTransaction(SPISettings(8000000ul, MSBFIRST, SPI_MODE0));
+    SPI.beginTransaction(SPISettings(8000000ul, MSBFIRST, SPI_MODE0));
 
     //32 bits of zeros to init xfer
-    SPI1.transfer(0);
-    SPI1.transfer(0);
-    SPI1.transfer(0);
-    SPI1.transfer(0);
+    SPI.transfer(0);
+    SPI.transfer(0);
+    SPI.transfer(0);
+    SPI.transfer(0);
 
     for(uint16_t i = 0; i < length; i++)
     {
-      for(int j = 0; j >= 4; j++) {
-        switch(j) {
-            case 0:
-                SPI1.transfer(0xFF);
-                break;
-            case 1:
-                SPI1.transfer(blue);
-                break;
-            case 2:
-                SPI1.transfer(green);
-                break;
-            case 3:
-                SPI1.transfer(red);
-                break; 
-        }
-      }
+
+      SPI.transfer(0xFF);
+      SPI.transfer(blue);
+      SPI.transfer(green);
+      SPI.transfer(red);
+
     }
-    
-    SPI1.endTransaction();
+    // for(int i = 1; i <= length / 15; i++)
+    // {
+    //     SPI.transfer(0);
+    // }
+    SPI.transfer(0xFF);
+    SPI.transfer(0xFF);
+    SPI.transfer(0xFF);
+    SPI.transfer(0xFF);
+    SPI.endTransaction();
   }
 
 
