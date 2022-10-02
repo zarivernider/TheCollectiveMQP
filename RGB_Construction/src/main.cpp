@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <APA102_Custom.h>
-APA102_Cust ledStrip(170);
+APA102_Cust ledStrip(150);
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   ledStrip.Init();
-  ledStrip.Show();
+  // ledStrip.Show();
 
 }
 

@@ -81,7 +81,7 @@ public:
       SPI.transfer(red);
 
     }
-    for(int i = 1; i <= length / 10 +1; i++)
+    for(int i = 0; i < length / 20 +4; i++)
     {
         SPI.transfer(0);
     }
