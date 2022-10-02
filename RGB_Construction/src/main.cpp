@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <APA102_Custom.h>
-APA102_Cust ledStrip(150);
+APA102 ledStrip(60);
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
