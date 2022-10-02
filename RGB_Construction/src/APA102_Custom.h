@@ -81,14 +81,15 @@ public:
       SPI.transfer(red);
 
     }
-    // for(int i = 1; i <= length / 15; i++)
-    // {
-    //     SPI.transfer(0);
-    // }
-    SPI.transfer(0xFF);
-    SPI.transfer(0xFF);
-    SPI.transfer(0xFF);
-    SPI.transfer(0xFF);
+    for(int i = 1; i <= length / 10 +1; i++)
+    {
+        SPI.transfer(0);
+    }
+    // SPI.transfer(0xFF);
+    // SPI.transfer(0xFF);
+    // SPI.transfer(0xFF);
+    // SPI.transfer(0xFF);
+
     SPI.endTransaction();
   }
 
