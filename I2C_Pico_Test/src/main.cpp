@@ -66,6 +66,9 @@ int readI2CInt(byte reg) {
   Wire.write((reg << 1) | 0x1);
   Wire.endTransmission();
   Wire.requestFrom(0x13, 2);
+
+
+  
   int output = Wire.read();
   output |= (Wire.read() << 8);
   return output;
