@@ -17,6 +17,8 @@
       Send byte 1: address for the variable. same as the index of arrMap
       Send byte 2: desired least significant byte
       Send byte 3: desired most signigicant byte
+
+    Code is optimized to only write 2 byte data types. WILL NOT WORK WITH DATA TYPES LARGER THAN 16 bits
 */
 class I2C_M {
   private: 
@@ -26,9 +28,9 @@ class I2C_M {
   
   public:    
   // Functions
-    void I2C_init();
-    void writeI2CInt(int data, byte reg, byte I2C_Addr);
-    int readI2CInt(byte reg, byte I2C_Addr);
+    void init();
+    void writeInt(int data, byte reg, byte I2C_Addr);
+    int readInt(byte reg, byte I2C_Addr);
 
 };
 

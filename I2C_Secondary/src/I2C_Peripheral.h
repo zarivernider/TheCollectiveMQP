@@ -29,7 +29,7 @@ class I2C_P {
     int* arrMap[30]; // Hold memory addresses for the desired variables to change
     byte globAddr = 0; // Keep track of current global address to connect send and recieve functions
   // Functions
-    void I2C_init();
+    void init(uint8_t address);
 
 };
 
