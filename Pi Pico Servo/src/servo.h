@@ -18,7 +18,7 @@ private:
 
 
 public:
-Servo(uint8_t pwmPin, float usMin, float usMax) { // Set up servo for 500 - 2400 uS pulse width
+Servo(uint8_t pwmPin) { // Set up servo for 500 - 2400 uS pulse width
     // Clock is 105 nS per tick. Convert input from uS to nS and get clock tick. 
     minCount = 4762; // set minimum time for 500 uS
     maxCount = 22857; // set maximum time for 2400 uS
