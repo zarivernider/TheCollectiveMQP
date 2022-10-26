@@ -34,7 +34,8 @@ while 1 :
 
         # ser.write(input.encode('utf-8'))
         value = 2452
-        message = [0x20, int(value & 255), int(value >> 8)]
+        address = 1
+        message = [(address << 1 )+ 1, int(value & 255), int(value >> 8)]
         print(message)
         ser.write(message)
         out = ''
