@@ -20,10 +20,11 @@ Password: nkvvw35634 <br /><br />
 *We have been assigned the Khepera05, but these instructions are valid for any Khepera*
 
 ### Install vim:
-*Updated Dockerfile in Github should automatically do this* <br />
+*Updated Dockerfile in Github should automatically do this* <br /><br />
 `$ sudo apt-get install vim`
 
 ### Make a config file:
+*Only need to do this the first time you setup the connection, after that the Dockerfile takes care of this* <br /><br />
 `$ mkdir ~/.ssh` <br />
 `$ vim ~/.ssh/config` 
 
