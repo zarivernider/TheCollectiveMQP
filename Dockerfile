@@ -5,11 +5,11 @@
 #   libkhepera-*.tar.bz2
 #
 # in the same folder as this file. They can be downloaded from
-#
+# (must use firefox)
 #   https://ftp.k-team.com/KheperaIV/software/Gumstix%20COM%20Y/light_tools/
 #   https://ftp.k-team.com/KheperaIV/software/Gumstix%20COM%20Y/library/
 #
-# Then build the image with
+# Then build the image with (may need sudo if you get a permissions error)
 #
 # docker build -t nestlab/kheperaiv .
 #
@@ -21,9 +21,9 @@
 #
 # docker run -it -v /host/directory:/container/directory nestlab/kheperaiv bash -l
 #
-# where /host/directory is a directory in your machine, and /container/directory is
-# a directory in the container.
-#
+# where /host/directory is a directory in your machine (use $(pwd)in the directory you saved the earlier files in), and /container/directory is
+# a directory in the container (use /work).
+# Contents of Dockerfile below
 
 FROM ubuntu:16.04
 ENV LAST_MODIFIED "2021-07-22:19.13"
@@ -46,7 +46,13 @@ RUN apt-get update && \
 	emacs-nox \
 	git \
 	net-tools \
-	python
+	python \
+	vim
+
+# Setup ~/.ssh file for easy access to khepera
+RUN mkdir ~/.ssh
+COPY config .
+RUN cp config ~/.ssh/config
 
 # Install light toolchain
 RUN bash poky-glibc-i686-khepera4-image-cortexa8hf-vfp-neon-toolchain-1.8.sh && \
