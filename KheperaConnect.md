@@ -1,8 +1,8 @@
 # Connecting to the Khepera
 
 ## Run the Docker container
-Go to your local directory that has the Dockerfile in it
-Note: if you get a permissions error use sudo <br />
+Go to your local directory that has the Dockerfile in it <br />
+*Note: if you get a permissions error use sudo* <br />
 `$ docker build -t nestlab/kheperaiv .` <br />
 `$ docker run -it -v $(pwd):/work nestlab/kheperaiv bash -l` <br />
 boom! you're in
@@ -20,7 +20,7 @@ Password: nkvvw35634 <br /><br />
 *We have been assigned the Khepera05, but these instructions are valid for any Khepera*
 
 ### Install vim:
-*Updated Dockerfile in Github should automatically do this* <br /><br />
+*Dockerfile in Github automatically does this* <br /><br />
 `$ sudo apt-get install vim`
 
 ### Make a config file:
