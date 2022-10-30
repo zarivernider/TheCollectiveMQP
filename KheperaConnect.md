@@ -1,19 +1,34 @@
+# Connecting to the Khepera
+
+## Run the Docker container
 Go to your local directory that has the Dockerfile in it
-Note: if you get a permissions error use sudo
-$ docker build -t nestlab/kheperaiv . 
-$ docker run -it -v $(pwd):/work nestlab/kheperaiv bash -l
-
+Note: if you get a permissions error use sudo <br />
+`$ docker build -t nestlab/kheperaiv .` <br />
+`$ docker run -it -v $(pwd):/work nestlab/kheperaiv bash -l` <br />
 boom! you're in
-And then to connect to khepera, join the NESTLab Wi-Fi network, password is nkvvw35634 and then connect to whatever khepera you are working on, I normally work on Khepera 5 as that's the one given to us
 
-Note: you need some sort of text editor for the following instructions, you can install vim using the following command:
-$ sudo apt-get install vim
+## Join the same WiFi network as the Khepera
+WiFi Network: NESTLab <br />
+Password: nkvvw35634 <br /><br />
+*If the WiFi network is not on:* 
+- *Turn on the computer across from the lab*
+- *Plug in the power supply next to the computer*
+- *Flip the power supply switch to ON*
+- *Plug in the router*
 
-You will need to make a config file:
-$ mkdir ~/.ssh
-$ vim ~/.ssh/config
+## Connect to the Khepera
+*We have been assigned the Khepera05, but these instructions are valid for any Khepera*
 
-In the config file paste the following: 
+### Install vim:
+*Updated Dockerfile in Github should automatically do this* <br />
+`$ sudo apt-get install vim`
+
+### Make a config file:
+`$ mkdir ~/.ssh` <br />
+`$ vim ~/.ssh/config` 
+
+In the config file paste the following: <br />
+``` 
 Host khepera01
 HostName 192.168.1.201
 User root
@@ -43,7 +58,7 @@ HostName 192.168.1.209
 User root
 Host khepera10
 HostName 192.168.1.210
-User root
-
-To ssh into a robot (for our purposes, it's the khepera05):
-$ ssh khepera05
+User root 
+```
+### SSH into a robot:
+`$ ssh khepera05`
