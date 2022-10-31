@@ -4,7 +4,7 @@ void APA102::Init(void)
   {
     SPI.begin();
     // Zero all pixels
-    for(uint16_t i = 0; i < length; i++) pixels[i] = MakeColor(0, 0, 0);
+    for(uint16_t i = 0; i < length; i++) pixels[i] = MakeColor(0, 0, 0); // Clear color of all LEDs
     Show(); //should clear all
   }
   APA102::pixel APA102::MakeColor(uint8_t red, uint8_t green, uint8_t blue) {
