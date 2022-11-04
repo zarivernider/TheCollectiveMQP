@@ -10,7 +10,9 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  pwmTest.setServo(45);
-
+  pwmTest.setServo(0);
+  delay(5000);
+  pwmTest.setServo(55);
+  delay(5000);
 }
 
