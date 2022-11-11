@@ -1,6 +1,6 @@
 
-#include <khepera/khepera.h>
-
+#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/src/khepera.h>
+#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.h>
 
 static int quitReq = 0;
 
@@ -10,11 +10,11 @@ static int quitReq = 0;
  */
 static knet_dev_t * Turret;
 static knet_dev_t * Gripper;
+cgripperI2C grippah;
 
 int initGripper( void )
 {
-
-  kgripper_init();
+  grippah.cgripper_init();
   /* open various socket and store the handle in their respective pointers */
   Turret = knet_open( "Cgripper:Turret" , KNET_BUS_I2C , 0 , NULL );
   Gripper  = knet_open( "Cgripper:Gripper" , KNET_BUS_I2C , 0 , NULL );
@@ -49,14 +49,10 @@ int main( int arc, char *argv[])
     while (!quitReq)
     {
 
-
+      grippah.cgripper_Turret_Set_Max_Speed(Gripper,100);
       printf("\n> ");
+      printf("sent");
 
-      if ( fgets( buf , sizeof(buf) , stdin ) != NULL )
-      {
-				buf[strlen(buf)-1] = '\0';
-				kb_parse_command( buf , cmds , NULL);
-      }
     }
 
     printf("Exiting...\r\n");

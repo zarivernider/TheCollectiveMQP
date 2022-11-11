@@ -11,8 +11,8 @@
  * \todo     Send via I2C, initialize the gripper module, finish out MQP.
  */
 
-#include "khepera/khepera.h"
-#include "cgripperI2C.h"
+#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/src/khepera.h>
+#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.h>
 
 int cgripper_init( void ){
 	int rc;
@@ -29,31 +29,31 @@ int cgripper_init( void ){
 
 unsigned short cgripper_Turret_Get_Position( knet_dev_t * dev ){
 	unsigned char Position;
-	knet_read8( dev , ARM_VERSION , &Position );
+	knet_read8( dev , TURRET_POSITION , &Position );
 
 	return Position;
 }
 unsigned short cgripper_Turret_Get_Speed( knet_dev_t * dev ){
 	unsigned char Position;
-	knet_read8( dev , ARM_VERSION , &Position );
+	knet_read8( dev , TURRET_SPEED , &Position );
 
 	return Position;
 }
 unsigned short cgripper_Turret_Get_Order( knet_dev_t * dev ){
 	unsigned char Order;
-	knet_read8( dev , ARM_VERSION , &Order );
+	knet_read8( dev , TURRET_ORDER , &Order );
 
 	return Order;
 }
 unsigned short cgripper_Turret_Get_Max_Speed( knet_dev_t * dev ){
 	unsigned char Max_Speed;
-	knet_read8( dev , ARM_VERSION , &Max_Speed );
+	knet_read8( dev , TURRET_MAX_SPEED , &Max_Speed );
 
 	return Max_Speed;
 }
 unsigned short cgripper_Turret_Get_Max_Tolerance( knet_dev_t * dev ){
 	unsigned char Max_Tolerance;
-	knet_read8( dev , ARM_VERSION , &Max_Tolerance );
+	knet_read8( dev , TURRET_MAX_TOLERANCE , &Max_Tolerance );
 
 	return Max_Tolerance;
 }
@@ -61,18 +61,24 @@ void cgripper_Turret_Set_Order( knet_dev_t * dev, unsigned short Order){
 
 }
 void cgripper_Turret_Set_Max_Speed( knet_dev_t * dev, unsigned short Max_Speed){
-
+	knet_write16( dev , TURRET_MAX_SPEED , Max_Speed );
 }
 void cgripper_Turret_Set_Max_Tolerance( knet_dev_t * dev, unsigned short Max_Tolerance){
 
 }
 /* Gripper Functions */
 unsigned short cgripper_Gripper_Get_Position( knet_dev_t * dev ){
+	unsigned char Position;
+	knet_read8( dev , CGRIPPER_POSITION , &Position );
 
+	return Position;
 }
 //extern unsigned short cgripper_Gripper_Get_Speed( knet_dev_t * dev );
 unsigned short cgripper_Gripper_Get_Order( knet_dev_t * dev ){
+	unsigned char Order;
+	knet_read8( dev , CGRIPPER_POSITION , &Order );
 
+	return Order;
 }
 void cgripper_Gripper_Set_Position( knet_dev_t * dev ){
 
@@ -83,12 +89,19 @@ void cgripper_Gripper_Set_Order( knet_dev_t * dev ){
 }
 /* Force Sensor Functions */
 unsigned short cgripper_ForceSensor_Get_Force( knet_dev_t * dev ){
+	unsigned char Force;
+	knet_read8( dev , FORCE_SENSOR_FORCE , &Force );
 
+	return Force;
 }
 //extern unsigned short cgripper_ForceSensor2_Get_Force( knet_dev_t * dev );
 //extern unsigned short cgripper_ForceSensor3_Get_Force( knet_dev_t * dev );
 /* LED Functions */
 unsigned short cgripper_LEDRing_Get_Status( knet_dev_t * dev ){
+	unsigned char Status;
+	knet_read8( dev , LED_STATUS , &Status );
+
+	return Status;
 
 }
 void cgripper_LEDRing_Set_Status( knet_dev_t * dev ){
