@@ -3,14 +3,19 @@ uint32_t finish = 0;
 
 static void i2cHandle() {
     // Serial.print("A: ");
+    // original attempt to read registers
     // Serial.println(*(io_rw_32*)(I2C0_BASE | I2C_IC_RAW_INTR_STAT_OFFSET));
     // uint32_t strtClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_START_DET_OFFSET);
     // uint32_t abtClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_TX_ABRT_OFFSET);
     // uint32_t reqClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_RD_REQ_OFFSET);
+
+    // Trial #2 to read register
     uint32_t status = i2c0->hw->intr_stat;
     uint32_t clr = i2c0->hw->clr_start_det;
     clr = i2c0->hw->clr_tx_abrt;
     clr = i2c0->hw->clr_rd_req;
+
+    // Last ditch attempt to write a reset to the clr registers
     hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_CLR_START_DET_OFFSET),
                     I2C_IC_CLR_START_DET_BITS,
                     I2C_IC_CLR_START_DET_RESET); 
