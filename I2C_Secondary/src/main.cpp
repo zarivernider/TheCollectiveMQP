@@ -5,7 +5,7 @@
 
 I2C_P i2c_p;
 int baseAngle = 0;
-int forceSensor = 20;
+int forceSensor = 0x7468;
 
 void setup() {
   i2c_p.arrMap[0] = &baseAngle; // Set baseAngle as the 0 address
