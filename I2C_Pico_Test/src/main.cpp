@@ -10,11 +10,11 @@ void setup() {
 }
 
 void loop() {
-  Serial.print("Read val at Addr 1 ");
-  int out = i2c_m.readInt(1, 0x13);
-  Serial.println(out);
-  // Serial.print("\t Write 4548 to addr 1\t");
-  // i2c_m.writeInt(4548, 1, 0x13);
+  // Serial.print("Read val at Addr 1 ");
+  // int out = i2c_m.readInt(1, 0x13);
+  // Serial.println(out);
+  Serial.println("\t Write 4548 to addr 1\t");
+  i2c_m.writeInt(4548, 1, 0x13);
   
   // out = i2c_m.readInt(1, 0x13);
   // Serial.print("written ");

@@ -32,5 +32,5 @@ class I2C_P {
 
 };
 
-extern I2C_P i2c_p;
+// extern I2C_P i2c_p;
 #endif
