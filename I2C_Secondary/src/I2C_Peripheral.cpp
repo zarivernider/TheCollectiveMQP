@@ -3,23 +3,32 @@
 static void receiveEvent(int howMany)
 {
 
-    i2c_p.globAddr = Wire.read(); // First byte is always address
-    if(Wire.available()) { // If 16 bit word passed -> write value
-        byte tempBuffer[2]; // temp place to store data
-        for(int i = 0; i < 2; i++) { // Get the data
-            tempBuffer[i] = Wire.read();
-        }
-        int* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
-        int value = tempBuffer[0] + (tempBuffer[1] << 8); // Build message
-        *valSave = value; // Rewrite variable
+    // i2c_p.globAddr = Wire.read(); // First byte is always address
+    // if(Wire.available()) { // If 16 bit word passed -> write value
+    //     byte tempBuffer[2]; // temp place to store data
+    //     for(int i = 0; i < 2; i++) { // Get the data
+    //         tempBuffer[i] = Wire.read();
+    //     }
+    //     int* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
+    //     int value = tempBuffer[0] + (tempBuffer[1] << 8); // Build message
+    //     *valSave = value; // Rewrite variable
+    // }
+    // if(Wire.available()) receiveEvent(Wire.available()); // If the buffer is not clear, re-run the function
+
+    // Test only
+    Serial.print("Reading ");
+    Serial.println(howMany);
+    while(Wire.available()) {
+        Serial.println(Wire.read());
     }
-    if(Wire.available()) receiveEvent(Wire.available()); // If the buffer is not clear, re-run the function
 
 }
 static void requestEvent() {
-  int* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
-  Wire.write((byte)(*valRead & 0x00FF)); // send LSB first
-  Wire.write((byte)(*valRead >> 8)); // send MSB second
+//   int* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
+//   Wire.write((byte)(*valRead & 0x00FF)); // send LSB first
+//   Wire.write((byte)(*valRead >> 8)); // send MSB second
+    Wire.write(25);
+    Wire.write(30);
 }
 
 
