@@ -1,7 +1,7 @@
 #include "I2C_Peripheral.h"
 uint32_t finish = 0;
 
-static void i2cHandle() {
+static inline void i2cHandle() {
     // Serial.print("A: ");
     // original attempt to read registers
     // Serial.println(*(io_rw_32*)(I2C0_BASE | I2C_IC_RAW_INTR_STAT_OFFSET));
@@ -10,29 +10,24 @@ static void i2cHandle() {
     // uint32_t reqClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_RD_REQ_OFFSET);
 
     // Trial #2 to read register
-    uint32_t status = i2c0->hw->intr_stat;
+    uint32_t Tempstatus = i2c0->hw->intr_stat;
     uint32_t clr = i2c0->hw->clr_start_det;
     clr = i2c0->hw->clr_tx_abrt;
     clr = i2c0->hw->clr_rd_req;
 
-    // Last ditch attempt to write a reset to the clr registers
-    hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_CLR_START_DET_OFFSET),
-                    I2C_IC_CLR_START_DET_BITS,
-                    I2C_IC_CLR_START_DET_RESET); 
-
-    hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_CLR_TX_ABRT_OFFSET),
-                    I2C_IC_CLR_TX_ABRT_BITS,
-                    I2C_IC_CLR_TX_ABRT_RESET); 
-    hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_CLR_RD_REQ_OFFSET),
-                    I2C_IC_CLR_RD_REQ_BITS,
-                    I2C_IC_CLR_RD_REQ_RESET); 
+    if(!i2c_p.mailBox) {
+        i2c_p.status = Tempstatus;
+        i2c_p.mailBox = true;
+    }
 
 }
 void I2C_P::init(uint8_t address) {
 
     I2C_P::I2C_Addr = address; // Store its own address
     
-
+    hw_write_masked((io_rw_32*)(WATCHDOG_BASE),
+                    0x0, // Get bit 30
+                    0x40000000); // Set to 0 (Set ctrl to 0)
     hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_ENABLE_OFFSET),
                     I2C_IC_ENABLE_ENABLE_VALUE_DISABLED,
                     I2C_IC_ENABLE_ENABLE_BITS); // disable I2C
@@ -57,8 +52,8 @@ void I2C_P::init(uint8_t address) {
                     I2C_IC_ENABLE_ENABLE_BITS); // enable I2C
 
     hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_INTR_MASK_OFFSET),
-                    I2C_IC_INTR_MASK_BITS,
-                    0x0460); // enable TX Abort and RD req and start
+                    0x0460,
+                    I2C_IC_INTR_MASK_BITS); // enable TX Abort and RD req and start
     
     // // Add GPIO funct. Pull-up resistors are external
     byte SCL_offset = 0x28; // offset for GPIO5
@@ -74,7 +69,6 @@ void I2C_P::init(uint8_t address) {
     irq_set_exclusive_handler(I2C0_IRQ, i2cHandle);
     irq_set_enabled(I2C0_IRQ, true); // enable interrupt
 // DAT (7:0) of CMD register hold data
-uint32_t status = i2c1->hw->intr_stat;
 
 }
 

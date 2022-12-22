@@ -27,10 +27,12 @@ class I2C_P {
   // Variables for array
     int* arrMap[30]; // Hold memory addresses for the desired variables to change
     byte globAddr = 0; // Keep track of current global address to connect send and recieve functions
+    bool mailBox = false;
+    uint32_t status = true;
   // Functions
     void init(uint8_t address);
 
 };
 
-// extern I2C_P i2c_p;
+extern I2C_P i2c_p;
 #endif
