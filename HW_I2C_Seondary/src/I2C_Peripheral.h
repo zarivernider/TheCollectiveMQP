@@ -29,6 +29,7 @@ class I2C_P {
     byte globAddr = 0; // Keep track of current global address to connect send and recieve functions
     bool mailBox = false;
     uint32_t status = true;
+    uint32_t rec = 0;
   // Functions
     void init(uint8_t address);
 

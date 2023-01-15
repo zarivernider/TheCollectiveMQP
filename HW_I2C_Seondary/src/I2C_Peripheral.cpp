@@ -2,22 +2,35 @@
 uint32_t finish = 0;
 
 static inline void i2cHandle() {
-    // Serial.print("A: ");
-    // original attempt to read registers
-    // Serial.println(*(io_rw_32*)(I2C0_BASE | I2C_IC_RAW_INTR_STAT_OFFSET));
-    // uint32_t strtClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_START_DET_OFFSET);
-    // uint32_t abtClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_TX_ABRT_OFFSET);
-    // uint32_t reqClr = *(io_rw_32*)(I2C0_BASE | I2C_IC_CLR_RD_REQ_OFFSET);
-
-    // Trial #2 to read register
     uint32_t Tempstatus = i2c0->hw->intr_stat;
     uint32_t clr = i2c0->hw->clr_start_det;
     clr = i2c0->hw->clr_tx_abrt;
-    clr = i2c0->hw->clr_rd_req;
-
-    if(!i2c_p.mailBox) {
-        i2c_p.status = Tempstatus;
+    if(Tempstatus & 0x200) // if stop
+    {
+        uint16_t message = 0;
+        i2c_p.rec = i2c0->hw->rxflr;
+        for(uint32_t i = 0; i < i2c_p.rec; i++) {
+            uint32_t receive = i2c0->hw->data_cmd & 0xFF;
+            if(i == 0)  i2c_p.globAddr = receive;
+            else message |= receive << ((i - 1)*8);
+        }
+        if(i2c_p.rec > 1) {
+            int* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
+            *valSave = message; // Rewrite variable
+        }
         i2c_p.mailBox = true;
+        clr = i2c0->hw->clr_stop_det; // clear stop bit
+
+    }
+    // if(!i2c_p.mailBox) {
+    //     i2c_p.status = Tempstatus;
+    //     i2c_p.mailBox = true;
+    // }
+    else if(Tempstatus & 0x20) {
+        int* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
+        i2c0->hw->data_cmd = (byte)(*valRead & 0x00FF); // send LSB first
+        i2c0->hw->data_cmd = (byte)(*valRead >> 8); // send MSB second
+        clr = i2c0->hw->clr_rd_req;
     }
 
 }
@@ -52,7 +65,7 @@ void I2C_P::init(uint8_t address) {
                     I2C_IC_ENABLE_ENABLE_BITS); // enable I2C
 
     hw_write_masked((io_rw_32*)(I2C0_BASE | I2C_IC_INTR_MASK_OFFSET),
-                    0x0460,
+                    0x0260, // 0x0400 is strt
                     I2C_IC_INTR_MASK_BITS); // enable TX Abort and RD req and start
     
     // // Add GPIO funct. Pull-up resistors are external
