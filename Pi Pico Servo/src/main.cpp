@@ -12,7 +12,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   pwmTest.setServo(0);
   delay(5000);
-  pwmTest.setServo(55); // Max angle for the gripper to rotate
+  pwmTest.setServo(135); // Max angle for the gripper to rotate
   delay(5000);
 }
 
