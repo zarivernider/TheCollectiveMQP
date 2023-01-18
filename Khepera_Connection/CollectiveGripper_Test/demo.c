@@ -1,66 +1,63 @@
 
-#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/src/khepera.h>
-#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.h>
-#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.c>
+//#include <../../work/khepera4_development/libkhepera-2.1/src/khepera.h>
+//#include <../../work/khepera4_development/libkhepera-2.1/src/knet.h>
 
-static int quitReq = 0;
+#include <../src/khepera.h>
+#include <../template/cgripperI2C.c>
+//#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.c>
 
+// Error Log
+FILE *f;
 
-
-/*! handle to the various Gripper devices (knet socket, i2c mode)
- */
-static knet_dev_t * Turret;
-static knet_dev_t * Gripper;
+void error_Log(char* fileline){
+	char* newline = "\r\n";
+	char *line = (char*)malloc(1 + strlen(fileline) + strlen(newline));
+	strcpy(line,fileline);
+	strcat(line,newline);
+	fprintf(f,"%s",line);
+}
 
 int initGripper( void )
 {
-  cgripper_init();
-  /* open various socket and store the handle in their respective pointers */
-  Turret = knet_open( "Cgripper:Turret" , KNET_BUS_I2C , 0 , NULL );
-  Gripper  = knet_open( "Cgripper:Gripper" , KNET_BUS_I2C , 0 , NULL );
-
-  if(Turret!=0)
-  {
-    if(Gripper!=0)
-    {
-      return 0;
-    }
-    else
-      return -1;
+  error_Log("Starting initialization for the cgripper_init()");
+  if( cgripper_init() == 0 ){
+	  error_Log("Gripper might have been initialized");
+	  return 0;
   }
-
-  return -2;
+  error_Log("Gripper initialization might have failed");
+  return -1;
 
 }
 
 int main( int arc, char *argv[])
 {
-  char i;
+  f = fopen("test.log","w");
+  error_Log("Inzitializing Error Log File");
 
-	char buf[64];
+  printf("The Collective I2C Connection Test Program (C) The Collective WPI, December 7 17:35\r\n");
 
-  printf("Khepera3 Gripper test program (C) K-Team S.A\r\n");
-  
-  unsigned short message = 100;
-
+  error_Log("Calling initGripper");
   if(!initGripper())
   {
-    printf("Init oke...\r\n");
-    printf("Testing please work");
+    error_Log("Initialized... maybe, might have wrong logic");
+    error_Log("Please send via I2C!");
 
-    while (!quitReq)
-    {
+    unsigned short message = 13;
 
-      cgripper_Turret_Set_Max_Speed(Gripper,message);
-      printf("\n> ");
-      printf("sent");
+    while (1)
+    { // Constantly send message
 
+      cgripper_Turret_Set_Max_Speed(message);
+//      cgripper_Turret_Set_Max_Speed(KTeamGripper,0x14);
     }
 
-    printf("Exiting...\r\n");
+    error_Log("Exiting...");
 	}
-	else
-	  printf("Fatal error, unable to initialize since something chandler"
-			  "did is wrong\r\n");
+	else{
+	  printf("Fatal error, unable to initialize since something Chandler did is wrong\r\n");
+      error_Log("Fatal error, unable to initialize since something Chandler did is wrong");
+	}
+
+
 
 }
