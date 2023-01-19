@@ -2,8 +2,8 @@
 //#include <../../work/khepera4_development/libkhepera-2.1/src/khepera.h>
 //#include <../../work/khepera4_development/libkhepera-2.1/src/knet.h>
 
-#include <../src/khepera.h>
-#include <../template/cgripperI2C.h>
+#include "../libkhepera-2.1/src/khepera.h"
+#include "cgripperI2C.c"
 //#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.c>
 
 // Error Log
@@ -49,10 +49,10 @@ int main( int arc, char *argv[])
 
       // cgripper_Turret_Set_Max_Speed(message);
 //      cgripper_Turret_Set_Max_Speed(KTeamGripper,0x14);
-      setpos = cgripper_Gripper_Set_Position(message);
-      printf("set gripper pos to: %f", setpos);
-      pos = cgripper_Gripper_Get_Position();
-      printf("read gripper pos as: %f", pos);
+      cgripper_Gripper_Set_Position(message);
+      printf("set gripper pos to: %hu", message);
+      unsigned short pos = cgripper_Gripper_Get_Position();
+      printf("read gripper pos as: %hu", pos);
     }
 
     error_Log("Exiting...");

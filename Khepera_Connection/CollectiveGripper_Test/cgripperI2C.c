@@ -11,9 +11,11 @@
  * \todo     Send via I2C, initialize the gripper module, finish out MQP.
  */
 
-#include <../src/khepera.h>
-#include <../src/utils/i2ctest.c>
-#include <../template/cgripperI2C.h>
+#include "../libkhepera-2.1/src/khepera.h"
+#include "../libkhepera-2.1/src/utils/i2ctest.c"
+// #include <../template/cgripperI2C.h> doesn't exists???
+#include "cgripperI2C.h"
+
 
 i2c_t i2c;
 // TODO : Check if this devpath even works
@@ -40,24 +42,24 @@ int close_gripper(void){
 }
 
 unsigned short cgripper_Turret_Get_Position(){
-	unsigned char Position;
+	unsigned short Position;
 	status = i2c_read16(&i2c,addr,TURRET_POSITION,&Position);
 	return Position;
 }
 unsigned short cgripper_Turret_Get_Speed(){
-	unsigned char Speed;
+	unsigned short Speed;
 	status = i2c_read16(&i2c,addr,TURRET_SPEED,&Speed);
 	return Speed;
 }
 
 unsigned short cgripper_Turret_Get_Max_Speed(){
-	unsigned char Max_Speed;
+	unsigned short Max_Speed;
 //	knet_read8( dev , TURRET_MAX_SPEED , &Max_Speed );
 	status = i2c_read16(&i2c,addr,TURRET_MAX_SPEED,&Max_Speed);
 	return Max_Speed;
 }
 unsigned short cgripper_Turret_Get_Max_Tolerance(){
-	unsigned char Max_Tolerance;
+	unsigned short Max_Tolerance;
 //	knet_read8( dev , TURRET_MAX_TOLERANCE , &Max_Tolerance );
 	status = i2c_read16(&i2c,addr,TURRET_MAX_TOLERANCE,&Max_Tolerance);
 	return Max_Tolerance;
@@ -72,7 +74,7 @@ void cgripper_Turret_Set_Max_Tolerance(unsigned short Max_Tolerance){
 }
 /* Gripper Functions */
 unsigned short cgripper_Gripper_Get_Position(){
-	unsigned char Position;
+	unsigned short Position;
 //	knet_read8( dev , GRIPPER_POSITION , &Position );
 	i2c_read16(&i2c,addr,GRIPPER_POSITION,&Position);
 	return Position;
@@ -84,7 +86,7 @@ void cgripper_Gripper_Set_Position(unsigned short Position){
 
 /* Force Sensor Functions */
 unsigned short cgripper_ForceSensor_Get_Force(){
-	unsigned char Force;
+	unsigned short Force;
 //	knet_read8( dev , FORCE_SENSOR_FORCE , &Force );
 	i2c_read16(&i2c,addr,FORCE_SENSOR_FORCE,&Force);
 	return Force;
@@ -93,7 +95,7 @@ unsigned short cgripper_ForceSensor_Get_Force(){
 //extern unsigned short cgripper_ForceSensor3_Get_Force( knet_dev_t * dev );
 /* LED Functions */
 unsigned short cgripper_LEDRing_Get_Config(){
-	unsigned char Config;
+	unsigned short Config;
 //	knet_read8( dev , LED_STATUS , &Config );
 	i2c_read16(&i2c,addr,LED_CONFIG,&Config);
 	return Config;
