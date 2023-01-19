@@ -12,6 +12,7 @@
  */
 
 #include <../src/khepera.h>
+#include <../src/utils/i2ctest.c>
 #include <../template/cgripperI2C.h>
 
 i2c_t i2c;

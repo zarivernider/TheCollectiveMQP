@@ -3,7 +3,7 @@
 //#include <../../work/khepera4_development/libkhepera-2.1/src/knet.h>
 
 #include <../src/khepera.h>
-#include <../template/cgripperI2C.c>
+#include <../template/cgripperI2C.h>
 //#include </home/midnightpegasus/khepera4_development/libkhepera-2.1/template/cgripperI2C.c>
 
 // Error Log
@@ -34,7 +34,7 @@ int main( int arc, char *argv[])
   f = fopen("test.log","w");
   error_Log("Inzitializing Error Log File");
 
-  printf("The Collective I2C Connection Test Program (C) The Collective WPI, December 7 17:35\r\n");
+  printf("The Collective I2C Connection Test Program (C) The Collective WPI, January 18 22:02\r\n");
 
   error_Log("Calling initGripper");
   if(!initGripper())
@@ -47,8 +47,12 @@ int main( int arc, char *argv[])
     while (1)
     { // Constantly send message
 
-      cgripper_Turret_Set_Max_Speed(message);
+      // cgripper_Turret_Set_Max_Speed(message);
 //      cgripper_Turret_Set_Max_Speed(KTeamGripper,0x14);
+      setpos = cgripper_Gripper_Set_Position(message);
+      printf("set gripper pos to: %f", setpos);
+      pos = cgripper_Gripper_Get_Position();
+      printf("read gripper pos as: %f", pos);
     }
 
     error_Log("Exiting...");
