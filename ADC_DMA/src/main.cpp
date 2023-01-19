@@ -7,23 +7,48 @@ void setup() {
   Serial.begin(9600);
   adc.initMulti();
   
-  // adc.calibrateADC_Single(2000);
+  adc.calibrateMulti(2000);
+  Serial.println("Calibration complete");
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  Serial.print("ADC0: ");
-  Serial.print(adc.rawADC[0]);
-  Serial.print("\t ADC1: ");
-  Serial.print(adc.rawADC[1]);
-  Serial.print("\t ADC2: ");
-  Serial.print(adc.rawADC[2]);
-  Serial.print("\t TEST: ");
-  // Serial.println(*(io_rw_32*)(DMA_CH0_CTRL_TRIG + adc.DMAoffset), HEX); // 
+  // Serial.print("Raw 0: ");
+  // Serial.print(adc.getrawADCMulti(0));
+  // Serial.print("\t Calib 0: ");
+  // Serial.print(adc.getADCMulti(0));
+  // Serial.print("\t Conv 0: ");
+  // Serial.print(adc.getVoltMulti(true, 0));
+
+  // Serial.print("\t Raw 1: ");
+  // Serial.print(adc.getrawADCMulti(1));
+  // Serial.print("\t Calib 1: ");
+  // Serial.print(adc.getADCMulti(1));
+  // Serial.print("\t Conv 1: ");
+  // Serial.print(adc.getVoltMulti(true, 1));
+
+  // Serial.print("\t Raw 2: ");
+  // Serial.print(adc.getrawADCMulti(2));
+  // Serial.print("\t Calib 2: ");
+  // Serial.print(adc.getADCMulti(2));
+  // Serial.print("\t Conv 2: ");
+  // Serial.println(adc.getVoltMulti(true, 2));
+
+  // Serial.print("Raw 2: ");
+  // Serial.print(adc.getrawADCMulti(2));
+  // Serial.print("\t Calib 2: ");channelTRL_TRIG + adc.DMAoffset), HEX); // 
   // Serial.println(*(io_rw_32*)(ADC_BASE + ADC_CS_OFFSET), HEX);
   // Serial.println(adc.DMAoffset, HEX);
   // Serial.println(adc.numbChannels);
-  Serial.println(*(io_rw_32*)(ADC_BASE + ADC_FCS_OFFSET), HEX);
+  // Serial.println(*(io_rw_32*)(ADC_BASE + ADC_RESULT_OFFSET));
+  // Serial.println(adc.getrawADCMulti(2));
+  Serial.print("Conv 0: ");
+  Serial.print(adc.getVoltMulti(true, 0));
+  Serial.print("\t Conv 1: ");
+  Serial.print(adc.getVoltMulti(true, 1));
+  Serial.print("\t Conv 2: ");
+  Serial.println(adc.getVoltMulti(true, 2));
+
   delay(1000);
 
 }

@@ -11,13 +11,13 @@ static inline void dmaHandler() {
     hw_write_masked((io_rw_32*)(DMA_CH0_WRITE_ADDR + adc.DMAoffset), 
                     (uint32_t)&adc.rawADC[adc.firstChannel],
                     0xFFFFFFFF); // set write address as rawADC array
+    writeReg(ADC_BASE + ADC_CS_OFFSET, 3, 12, adc.firstChannel); // Set starting channel to the first channel
     // Restart DMA
     // *(io_rw_32*)(DMA_CH0_CTRL_TRIG ) |= 0x1;
     hw_write_masked((io_rw_32*)(DMA_CH0_CTRL_TRIG + adc.DMAoffset), 
                 0x1,
                 0x1); // enable DMA 
 
-    adc.enterInt++;
 }
 void ADC::initSingle() {
     uint8_t gpioPin = ADC::GPIO_ADC_OFFSET + ADC::ain_sel;
@@ -79,21 +79,23 @@ float ADC::getVolt_float_Single(bool isCalib) {
             ADC::numbChannels++; // account for current channel
         }
     }
-    // Enable FIFO
-    writeReg(ADC_BASE | ADC_FCS_OFFSET, 1, 0, 0x1);
+    
     // Enable ADC DREQ
     writeReg(ADC_BASE | ADC_FCS_OFFSET, 1, 3, 0x1);
     // Set THRESH to 1
     writeReg(ADC_BASE | ADC_FCS_OFFSET, 4, 24, 0x1);
-    // Set DMA transfersize to 8 and preshift fifo samples (FCS) to 8 bits?
-
+    // Set DMA transfersize to 8 and preshift fifo samples (FCS) to 8 bits. Not used; entire 12 bit word is kept
+    // writeReg(ADC_BASE | ADC_FCS_OFFSET, 1, 1, 0x1);
+    // Enable FIFO
+    writeReg(ADC_BASE | ADC_FCS_OFFSET, 1, 0, 0x1);
     // Configure ADC for all except start many pin
     writeReg(ADC_BASE + ADC_CS_OFFSET, 5, 16, ADC::activeChannels); // Set proper channels active
-    writeReg(ADC_BASE + ADC_CS_OFFSET, 3, 12, ADC::firstChannel); // Set starting channel to the first channel
     // Set the ADC freq to 1000 samples per second
     writeReg(ADC_BASE + ADC_DIV_OFFSET, 8, 0, 0x0); // Set frac for 0 -> Clock is 48 MHz
     writeReg(ADC_BASE + ADC_DIV_OFFSET, 16, 8, 0xBB7F); // Set int for 47,999
+
     writeReg(ADC_BASE + ADC_CS_OFFSET, 1, 0, 1); // Set ADC to enable
+
     // Configure DMA
     hw_write_masked((io_rw_32*)(DMA_CH0_WRITE_ADDR + ADC::DMAoffset), 
                     (uint32_t)&ADC::rawADC[ADC::firstChannel],
@@ -106,8 +108,8 @@ float ADC::getVolt_float_Single(bool isCalib) {
     writeReg((DMA_CH0_CTRL_TRIG + ADC::DMAoffset), 6, 15, DREQ_ADC); // set dreq on pwm wrap
 
     hw_write_masked((io_rw_32*)(DMA_CH0_CTRL_TRIG + ADC::DMAoffset),                     
-                    0x24,
-                    0x3f); // increment only the write, set half word, not high priority
+                    0x24, //0x20 is quarter word
+                    0x3f); // increment only the write, set quarter word, not high priority
     
     // Enable corresponding DMA 
     writeReg(DMA_INTE0, 1, ADC::DMAnumber, 0x1);
@@ -122,7 +124,38 @@ float ADC::getVolt_float_Single(bool isCalib) {
     hw_write_masked((io_rw_32*)(DMA_CH0_CTRL_TRIG + ADC::DMAoffset), 
                     0x1,
                     0x1); // enable DMA 
+    
+    writeReg(ADC_BASE + ADC_CS_OFFSET, 3, 12, ADC::firstChannel); // Set starting channel to the first channel
     // Start many pin of ADC
     writeReg(ADC_BASE + ADC_CS_OFFSET, 1, 3, 1); // Set ADC to start many
 
+
  }
+
+
+void ADC::calibrateMulti(uint16_t numbValues) {
+    uint32_t totalSum[numbADCchannels];
+    // Clear all values
+    for(int iter = 0; iter < numbADCchannels; iter++) totalSum[iter] = 0;
+    for(int iter = 0; iter < numbValues; iter++) {
+        for(int iter = 0; iter < numbADCchannels; iter++) totalSum[iter] += ADC::getrawADCMulti(iter);
+        delay(numbADCchannels);
+    }
+    for(int iter = 0; iter < numbADCchannels; iter++) ADC::calibMulti[iter] = totalSum[iter] / numbValues;
+}
+
+uint16_t ADC::getADCMulti(uint8_t channel) { 
+    // uint8_t ovfChannel = channel < numbADCchannels ? channel : numbADCchannels - 1; // prevent index out of bounds error
+    uint16_t rawADC = ADC::getrawADCMulti(channel);
+    return rawADC < ADC::calibMulti[channel] ? 0 : rawADC - ADC::calibMulti[channel];
+}
+
+uint16_t ADC::getrawADCMulti(uint8_t channel) { 
+    // channel = channel < numbADCchannels ? channel : numbADCchannels - 1; // prevent index out of bounds error
+    return ADC::rawADC[channel] & 0xFFF;
+}
+
+float ADC::getVoltMulti(bool isCalib, uint8_t channel) {
+    uint16_t ADCval = isCalib ? ADC::getADCMulti(channel) : ADC::getrawADCMulti(channel);
+    return (float)(3.3 * ADCval) / 4096;
+}
