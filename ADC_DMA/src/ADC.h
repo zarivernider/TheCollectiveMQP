@@ -6,28 +6,49 @@
 class ADC
 {
     private:
+        #define numbADCchannels 3
         uint8_t ain_sel;
-        uint8_t DMAnumber;
-        uint32_t DMAoffset;
+        
+        
         float fsVolt = 3.3; // full scale voltage
         uint8_t GPIO_ADC_OFFSET = 26; // GPIO 26 represents ADC 0
         uint16_t calib = 0;
+        uint8_t activeChannels = 0;
+        // uint8_t numbChannels;
+        
+        // uint16_t *ADC0Val = &rawADC[0];
+        // uint16_t *ADC1Val = 
+        
     public:
+        uint8_t enterInt = 0; // TEST 
+        uint8_t numbChannels;
+        uint8_t DMAnumber;
+        uint16_t rawADC[numbADCchannels];
+        uint8_t firstChannel;
+        uint32_t DMAoffset;
         uint32_t ADCresult = 0;
-        ADC(uint8_t ADC_Channel, uint8_t DMA_Channel) {
+        ADC(uint8_t ADC_Channel) {
             if(ADC_Channel > 2) ain_sel = 2;
             else ain_sel = ADC_Channel;
-            DMAnumber = DMA_Channel;
+            
         }
-        void init();
-        float getVolt_float(bool isCalib);
-        uint32_t getVolt_fix(bool isCalib);
-        uint8_t getVolt_khepera(bool isCalib);
-        uint16_t getADC();
-        uint16_t getRawADC();
-        void calibrateADC(uint16_t numbValues);
+        ADC(uint8_t channels, uint8_t DMA_Channel) {
+            DMAnumber = DMA_Channel;
+            activeChannels = channels;
+            // activeChannels &= 0b111; // FIX LATER 
+        }
+        void initSingle();
+        float getVolt_float_Single(bool isCalib);
+        uint16_t getADC_Single();
+        uint16_t getRawADC_Single();
+        void calibrateADC_Single(uint16_t numbValues);
+
+        void initMulti();
+
 
 
 };
+
+extern ADC adc;
 
 #endif
