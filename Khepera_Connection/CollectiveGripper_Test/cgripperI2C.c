@@ -4,7 +4,7 @@
  * \brief
  *         This module is layer for communication with the collective's khepera 4 Gripper module.
  *
- * \author   Chandler Garcia & Yasmine Lastname
+ * \author   Chandler Garcia & Yasmine Aoua
  *
  * \note     We are using the kb_gripper code for reference
  * \bug      none discovered.
@@ -18,10 +18,11 @@
 
 
 i2c_t i2c;
-// TODO : Check if this devpath even works
+// TODO : Check if this devpath even works (seems to worlk - Yasmine)
 char *devpath = NULL;// might default to correct devpath, but unsure
 int status;
-int addr = 0;
+// TODO : change addr to something that isn't already being used
+int addr = 0x15;
 
 int cgripper_init( void ){
 	/* Initializes the connection to the gripper, expects a response
@@ -76,12 +77,14 @@ void cgripper_Turret_Set_Max_Tolerance(unsigned short Max_Tolerance){
 unsigned short cgripper_Gripper_Get_Position(){
 	unsigned short Position;
 //	knet_read8( dev , GRIPPER_POSITION , &Position );
-	i2c_read16(&i2c,addr,GRIPPER_POSITION,&Position);
+	// i2c_read16(&i2c,addr,GRIPPER_POSITION,&Position); // for use on khepera
+	i2c_read16(&i2c,addr,0x1,&Position); // for testing on pi pico
 	return Position;
 }
 
 void cgripper_Gripper_Set_Position(unsigned short Position){
-	i2c_write16(&i2c,addr,GRIPPER_POSITION,Position);
+	// i2c_write16(&i2c,addr,GRIPPER_POSITION,Position); // for use on khepera
+	i2c_write16(&i2c,addr,0x1,Position); // for testing on pi pico
 }
 
 /* Force Sensor Functions */

@@ -50,9 +50,11 @@ int main( int arc, char *argv[])
       // cgripper_Turret_Set_Max_Speed(message);
 //      cgripper_Turret_Set_Max_Speed(KTeamGripper,0x14);
       cgripper_Gripper_Set_Position(message);
-      printf("set gripper pos to: %hu", message);
+      printf("set gripper pos to: %hu \n", message);
+      sleep(1);
       unsigned short pos = cgripper_Gripper_Get_Position();
-      printf("read gripper pos as: %hu", pos);
+      printf("read gripper pos as: %hu \n", pos);
+      sleep(1);
     }
 
     error_Log("Exiting...");
