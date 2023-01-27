@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "ADC.h"
-ADC adc(0b110, 0);
+ADC adc(0b100, 0);
 
 void setup() {
   // put your setup code here, to run once:
@@ -41,13 +41,13 @@ void loop() {
   // Serial.println(adc.DMAoffset, HEX);
   // Serial.println(adc.numbChannels);
   // Serial.println(*(io_rw_32*)(ADC_BASE + ADC_RESULT_OFFSET));
-  // Serial.println(adc.getrawADCMulti(2));
-  Serial.print("Conv 0: ");
-  Serial.print(adc.getVoltMulti(true, 0));
-  Serial.print("\t Conv 1: ");
-  Serial.print(adc.getVoltMulti(true, 1));
+  Serial.print(adc.getrawADCMulti(2));
+  // Serial.print("Conv 0: ");
+  // Serial.print(adc.getVoltMulti(true, 0));
+  // Serial.print("\t Conv 1: ");
+  // Serial.print(adc.getVoltMulti(true, 1));
   Serial.print("\t Conv 2: ");
-  Serial.println(adc.getVoltMulti(true, 2));
+  Serial.println(adc.getVoltMulti(false, 2));
 
   delay(1000);
 
