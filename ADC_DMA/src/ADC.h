@@ -18,7 +18,7 @@ class ADC
         uint8_t ain_sel;
         
         
-        float fsVolt = 3.3; // full scale voltage
+        float fsVolt = 1.8; // full scale voltage
         uint8_t GPIO_ADC_OFFSET = 26; // GPIO 26 represents ADC 0
         uint16_t calib = 0;
         uint8_t activeChannels = 0;

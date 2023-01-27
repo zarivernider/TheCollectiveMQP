@@ -10,7 +10,7 @@
 class Stepper
 {
 private:
-  #define microSteps 4 // The amount of micro steps that is configured for the driver
+  #define microSteps 2 // The amount of micro steps that is configured for the driver
   #define stepsperRev 200 // The amount of steps it takes for one revolution 1 / degrees per step
   uint8_t pwmPin = 0;
 //   uint8_t dirPin = 0;
