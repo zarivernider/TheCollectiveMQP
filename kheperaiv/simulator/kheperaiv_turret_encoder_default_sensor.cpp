@@ -1,7 +1,7 @@
 /**
  * @file <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_turret_encoder_default_sensor.cpp>
  *
- * @author Carlo Pinciroli - <ilpincy@gmail.com>
+ * @author Chandler Garcia & Yasmine Aoua
  */
 
 #include "kheperaiv_turret_encoder_default_sensor.h"

@@ -45,5 +45,9 @@ const Real KHEPERAIV_LIDAR_SENSORS_FAN_RADIUS = KHEPERAIV_BASE_RADIUS;
 const CRadians KHEPERAIV_LIDAR_ANGLE_SPAN(ToRadians(CDegrees(210.0)));
 const CRange<Real> KHEPERAIV_LIDAR_SENSORS_RING_RANGE(0.02, 4.0);
 
+/* TODO : Measurements for The Collective gripper*/
+const Real KHEPERAIV_GRIPPER_RING_RADIUS = 0.0704;
+
+
 /****************************************/
 /****************************************/

@@ -1,7 +1,7 @@
 /**
  * @file <argos3/plugins/robots/kheperaiv/simulator/kheperaiv_turret_entity.h>
  *
- * @author Carlo Pinciroli - <ilpincy@gmail.com>
+ * @author Chandler Garcia & Yasmine Aoua
  */
 
 #ifndef KHEPERAIV_TURRET_ENTITY_H

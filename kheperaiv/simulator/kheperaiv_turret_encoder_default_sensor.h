@@ -1,7 +1,7 @@
 /**
  * @file <argos3/plugins/robots/foot-bot/simulator/kheperaiv_turret_encoder_default_sensor.h>
  *
- * @author Carlo Pinciroli - <ilpincy@gmail.com>
+ * @author Chandler Garcia & Yasmine Aoua
  */
 
 #ifndef KHEPERAIV_TURRET_ENCODER_DEFAULT_SENSOR_H

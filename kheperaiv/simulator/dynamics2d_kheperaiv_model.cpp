@@ -15,9 +15,10 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   static const Real KHEPERAIV_MASS                = 0.4f;
-   static const Real KHEPERAIV_MAX_FORCE           = 1.5f;
-   static const Real KHEPERAIV_MAX_TORQUE          = 1.5f;
+   static const Real KHEPERAIV_MASS                = 0.4f; // base khepera mass
+   static const Real KHEPERAIV_MASS_W_TURRET       = 0.4f; // TODO: khepera mass with our new base
+   static const Real KHEPERAIV_MAX_FORCE           = 1.5f; // TODO: add updated ones for the added weight of our new base
+   static const Real KHEPERAIV_MAX_TORQUE          = 1.5f; // TODO: add updated ones for the added weight of our new base
 
    enum KHEPERAIV_WHEELS {
       KHEPERAIV_LEFT_WHEEL = 0,

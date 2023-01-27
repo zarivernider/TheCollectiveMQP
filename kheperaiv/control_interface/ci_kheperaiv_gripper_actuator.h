@@ -9,7 +9,7 @@
  * direction the 2 side pins of the gripper move upwards and the middle pin
  * downwards.
  *
- * @author Carlo Pinciroli - <ilpincy@gmail.com>
+ * @author Chandler Garcia & Yasmine Aoua
  */
 
 #ifndef CCI_KHEPERAIV_GRIPPER_ACTUATOR_H

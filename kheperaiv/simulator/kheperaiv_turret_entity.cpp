@@ -1,7 +1,7 @@
 /**
  * @file <argos3/plugins/robots/kheperaiv/simulator/KheperaIV_turret_entity.cpp>
  *
- * @author Carlo Pinciroli - <ilpincy@gmail.com>
+ * @author Chandler Garcia & Yasmine Aoua
  */
 
 #include "kheperaiv_turret_entity.h"

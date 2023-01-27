@@ -37,7 +37,7 @@
  * the turret to assess whether gripping was successful. In the meantime EVERY command issued to
  * the turret is IGNORED. The check operation lasts less than a second.
  *
- * @author Carlo Pinciroli - <ilpincy@gmail.com>
+ * @author Chandler Garcia & Yasmine Aoua
  */
 
 #ifndef CCI_KHEPERAIV_TURRET_ACTUATOR_H
