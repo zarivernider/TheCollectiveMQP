@@ -157,5 +157,5 @@ uint16_t ADC::getrawADCMulti(uint8_t channel) {
 
 float ADC::getVoltMulti(bool isCalib, uint8_t channel) {
     uint16_t ADCval = isCalib ? ADC::getADCMulti(channel) : ADC::getrawADCMulti(channel);
-    return (float)(3.3 * ADCval) / 4096;
+    return (float)(fsVolt * ADCval) / 4096;
 }

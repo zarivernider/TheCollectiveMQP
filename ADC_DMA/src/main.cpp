@@ -47,7 +47,7 @@ void loop() {
   // Serial.print("\t Conv 1: ");
   // Serial.print(adc.getVoltMulti(true, 1));
   Serial.print("\t Conv 2: ");
-  Serial.println(adc.getVoltMulti(false, 2));
+  Serial.println(adc.getVoltMulti(true, 2));
 
   delay(1000);
 
