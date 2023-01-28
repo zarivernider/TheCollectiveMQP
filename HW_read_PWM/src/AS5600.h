@@ -15,13 +15,16 @@ class AS5600
 
         uint8_t pwmPin = 0;
         uint8_t pwmScale;
-        uint8_t pwmOffset;
+        
         uint8_t ioOffset;
         uint8_t pwmSlice;
+        
         //15
     public:
+    uint16_t rawAngle;
         uint8_t DMAnumber;
         uint32_t DMAoffset;
+        uint8_t pwmOffset;
 
         AS5600(uint8_t GPIO, uint8_t DMA_Channel) {
             DMAnumber = DMA_Channel;

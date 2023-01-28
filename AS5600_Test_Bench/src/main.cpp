@@ -34,6 +34,8 @@ void setup() {
   currValue &= 0x0F;
   currValue |= 0xA0;
   writeReg(0x8, currValue);
+
+  writeReg(0xFF, 0x40);
 }
 
 void loop() {
