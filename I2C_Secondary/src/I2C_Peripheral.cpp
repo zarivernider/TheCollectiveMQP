@@ -2,52 +2,34 @@
 uint32_t finish = 0;
 static void receiveEvent(int howMany)
 {
-    // uint32_t strt = micros();
-    i2c_p.globAddr = Wire.read(); // First byte is always address
-    if(Wire.available()) { // If 16 bit word passed -> write value
-        byte tempBuffer[2]; // temp place to store data
-        for(int i = 0; i < 2; i++) { // Get the data
-            tempBuffer[i] = Wire.read();
-        }
-        int* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
-        int value = tempBuffer[0] + (tempBuffer[1] << 8); // Build message
-        *valSave = value; // Rewrite variable
+
+    // i2c_p.globAddr = Wire.read(); // First byte is always address
+    // if(Wire.available()) { // If 16 bit word passed -> write value
+    //     byte tempBuffer[2]; // temp place to store data
+    //     for(int i = 0; i < 2; i++) { // Get the data
+    //         tempBuffer[i] = Wire.read();
+    //     }
+    //     int* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
+    //     int value = tempBuffer[0] + (tempBuffer[1] << 8); // Build message
+    //     *valSave = value; // Rewrite variable
+    // }
+    // if(Wire.available()) receiveEvent(Wire.available()); // If the buffer is not clear, re-run the function
+
+    // Test only
+    Serial.print("Reading ");
+    Serial.println(howMany);
+    while(Wire.available()) {
+        Serial.println(Wire.read());
     }
-    if(Wire.available()) receiveEvent(Wire.available()); // If the buffer is not clear, re-run the function
-    finish = micros();
-    // Serial.println(finish-strt);
+
 }
 static void requestEvent() {
-  uint32_t strt = micros();
-  int* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
-  Wire.write((byte)(*valRead & 0x00FF)); // send LSB first
-  Wire.write((byte)(*valRead >> 8)); // send MSB second
-  Serial.print("rec req ");
-  Serial.print(strt - finish);
-  Serial.print("\t millis");
-  Serial.print(micros());
-  Serial.print("\t req: ");
-  Serial.println(micros() - strt);
+//   int* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
+//   Wire.write((byte)(*valRead & 0x00FF)); // send LSB first
+//   Wire.write((byte)(*valRead >> 8)); // send MSB second
+    Wire.write(25);
+    Wire.write(30);
 }
-//DEPRECATED
-// static void receiveEventwShift(int howMa.ny)
-// {
-//   globAddr = Wire.read();
-//   bool isRead = globAddr & 0x1 ? true : false;
-//   globAddr = globAddr >> 1;
-//   if(isRead) return;
-//   else {
-//     byte tempBuffer[2];
-//     if(Wire.available() >= 2) {
-//       for(int i = 0; i < 2; i++) {
-//         tempBuffer[i] = Wire.read();
-//       }
-//     }
-//     int* valSave = arrMap[globAddr];
-//     int value = tempBuffer[0] + (tempBuffer[1] << 8);
-//     *valSave = value;
-//   }
-// }
 
 
 
@@ -75,6 +57,5 @@ void I2C_P::init(uint8_t address) {
     // writeReg(IO_BANK0_BASE | (0x04 + SDA_offset), 5, 0, 3); // func select -> 3 = SDA
     // writeReg(IO_BANK0_BASE | (0x04 + SDA_offset), 2, 12, 0); // Pin output -> 0 = func select, 2 = disable output
     // writeReg(I2C_En, 1, 0, 0x1); // Enable I2C
-
 }
 

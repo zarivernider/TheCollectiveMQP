@@ -1,6 +1,7 @@
 #include "I2C_Primary.h"
 
 void I2C_M::init() {
+    Wire.begin();
     // I2C Memory addresses
     uint32_t I2C_Con = I2C0_BASE | 0x00; // I2C Control
     uint32_t I2C_En = I2C0_BASE | 0x6c; // I2C Enable
@@ -21,7 +22,6 @@ void I2C_M::init() {
     // writeReg(IO_BANK0_BASE | (0x04 + SDA_offset), 2, 12, 0); // Pin output -> 0 = func select, 2 = disable output
     
     // writeReg(I2C_En, 1, 0, 0x1); // Enable I2C
-
 }
 
 
@@ -45,25 +45,3 @@ int I2C_M::readInt(byte reg, byte I2C_Addr) {
     output |= (Wire.read() << 8); // get MSB
     return output;
 }
-
-
-
-// Bit shifted R/W (DEPRECATED)
-// void writeI2CInt(int data, byte reg, byte I2C_Addr) {
-//   Wire.beginTransmission(I2C_Addr);
-//   Wire.write(reg << 1);
-//   Wire.write((byte)(data & 0x00FF));
-//   Wire.write((byte)(data >> 8));
-//   Wire.endTransmission();
-// }
-
-// int readI2CInt(byte reg, byte I2C_Addr) {
-//   Wire.beginTransmission(I2C_Addr);
-//   Wire.write((reg << 1) | 0x1);
-//   Wire.endTransmission();
-//   Wire.requestFrom(I2C_Addr, 2);
-  
-//   int output = Wire.read();
-//   output |= (Wire.read() << 8);
-//   return output;
-// }
