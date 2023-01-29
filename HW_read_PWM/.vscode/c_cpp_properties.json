@@ -8,8 +8,8 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/home/zach/Documents/MQP/TheCollectiveMQP/Pi Pico Servo/include",
-                "/home/zach/Documents/MQP/TheCollectiveMQP/Pi Pico Servo/src",
+                "/home/zach/Documents/MQP/TheCollectiveMQP/HW_read_PWM/include",
+                "/home/zach/Documents/MQP/TheCollectiveMQP/HW_read_PWM/src",
                 "/home/zach/.platformio/packages/framework-arduino-mbed/cores/arduino",
                 "/home/zach/.platformio/packages/framework-arduino-mbed/cores/arduino/api/deprecated",
                 "/home/zach/.platformio/packages/framework-arduino-mbed/cores/arduino/api/deprecated-avr-comp",
@@ -56,8 +56,8 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/home/zach/Documents/MQP/TheCollectiveMQP/Pi Pico Servo/include",
-                    "/home/zach/Documents/MQP/TheCollectiveMQP/Pi Pico Servo/src",
+                    "/home/zach/Documents/MQP/TheCollectiveMQP/HW_read_PWM/include",
+                    "/home/zach/Documents/MQP/TheCollectiveMQP/HW_read_PWM/src",
                     "/home/zach/.platformio/packages/framework-arduino-mbed/cores/arduino",
                     "/home/zach/.platformio/packages/framework-arduino-mbed/cores/arduino/api/deprecated",
                     "/home/zach/.platformio/packages/framework-arduino-mbed/cores/arduino/api/deprecated-avr-comp",
