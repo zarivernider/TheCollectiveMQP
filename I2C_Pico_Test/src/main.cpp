@@ -24,8 +24,12 @@ void loop() {
   // Serial.print("Addr 0:  ");
   // Serial.println(out);
 
-  // delay(5000);
-  // i2c_m.writeInt(0, 1, 0x13);
-  // Serial.println("Cleared");
+
+  delay(5000);
+  i2c_m.writeInt(0, 1, 0x13);
+  Serial.println("Cleared");
+
+
+  delay(5000);
 }
 
