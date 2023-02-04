@@ -15,7 +15,7 @@ static inline void i2cHandle() {
             else message |= receive << ((i - 1)*8);
         }
         if(i2c_p.rec > 1) {
-            int* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
+            uint16_t* valSave = i2c_p.arrMap[i2c_p.globAddr]; // point to the specific memory address of the intended variable
             *valSave = message; // Rewrite variable
         }
         i2c_p.mailBox = true;
@@ -27,7 +27,7 @@ static inline void i2cHandle() {
     //     i2c_p.mailBox = true;
     // }
     else if(Tempstatus & 0x20) {
-        int* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
+        uint16_t* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
         i2c0->hw->data_cmd = (byte)(*valRead & 0x00FF); // send LSB first
         i2c0->hw->data_cmd = (byte)(*valRead >> 8); // send MSB second
         i2c0->hw->clr_rd_req;
@@ -84,4 +84,5 @@ void I2C_P::init(uint8_t address) {
 // DAT (7:0) of CMD register hold data
 
 }
+
 
