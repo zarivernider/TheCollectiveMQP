@@ -1,0 +1,36 @@
+Info from py to buzz
+PutIncreases - wrapper to call buzz put
+BuzzPut() - interface between argos and buzz, feed in vector of left and right increases, vector of booleans for failures, vector for angle to goal, and vector to figure out if we want to use base model
+BuzzPut : takes in robot ID and actual VM that is robot - 4 robots 4 vm's with different ID's
+ - give vector L_Increase, and automatically puts vector into each robot
+ 	- In the buzz code, 
+ 	function_step - each individual robot is running code on its own, info automatically gets proppogated to robot's vm
+ 	In buzz code, L_wheel (speed) = L_weel + L_increase
+ 	
+	If robot fails, robot unlocks gripper and sets wheels to 0
+	 - gripper_unlock()
+
+Line 19 collrlt0.argo call buzz footbot controller, define gripper, turret, etc with implementation for footbot
+
+in collectiveRLTransport.cpp create entities happens, then actual footbots get created
+Line 174, footbots get created, FB_CONTROLLER is the buzz code basically
+Setup proximity sensors, etc
+
+Line 520 ish loop functions called GetOpservations - we get cylinder entity, get position, orientation
+m_vecRobotStats - stuff being sent back to python
+
+Check line 622 for all the readings
+Line 633 will probably need to be changed for m_vecObs to get the right stuff
+
+Line 664 ZMQ send stuff is sending in order the info to python
+
+Line 279 RL code choose agent action chooses what the agent does, and then we do socket.send action to take, which sends it to ZMQActions
+
+The ZMQ stuff, sends and receives stuff from cpp to python
+ZMQ Utility will have to change, the proximity values will have to change, a couple other things will probably have to change
+Change the constants at top of cpp file for Khepera stuff
+line 43 for m_unNumObs will have to change for how many sensors we have
+
+Use the gripper as the hard solid outer ring
+
+

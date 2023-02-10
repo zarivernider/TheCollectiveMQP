@@ -1,0 +1,16 @@
+SAnchor - 
+Refernce point origin anchor - center base of khepera 0,0,0
+We want a turret anchor 0,0,height of robot
+2D phyics engine chipmunk 2 - create a special type of shape (sensorshape) and express position of sensorshape with offset - how / where do we define this offset?
+ Since its 2D, don't have to worry about height since they are just top down view
+ Spring joint point - need to switch the joint attachment point to the sensor
+ - callback adds spring and tells us the force
+
+
+Chipmunk 2D - body associated to 1 or more shapes
+ - body has mass, inertia, pretty sure its defined in kheperaiv_measurements
+Created the shape with respect to the body, the position changes are in its initialization
+ - addshape
+
+Need updateturretanchor
+Also need dynamics2d_footbot_model
