@@ -147,7 +147,7 @@ namespace argos {
 
    CDynamics2DKheperaIVModel::~CDynamics2DKheperaIVModel() {
       m_cDiffSteering.Detach();
-      delete m_pcGripper; // TODO : Check over this
+      delete m_pcGripper; // TODO : Check over this, should be accurate and it has all the correct variables
       delete m_pcGrippable;
       switch(m_unLastTurretMode) {
          case MODE_OFF:
@@ -172,9 +172,35 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   // TODO : DO WE NEED THIS Pinci?
+   // void CDynamics2DFootBotModel::MoveTo(const CVector3& c_position,
+   //                                      const CQuaternion& c_orientation) {
+   //    /* Release grippers and grippees */
+   //    m_pcGripper->Release();
+   //    m_pcGrippable->ReleaseAll();
+   //    /* Move robot */
+   //    CDynamics2DMultiBodyObjectModel::MoveTo(c_position,
+   //                                            c_orientation);
+   // }
+
+   /****************************************/
+   /****************************************/
+
    void CDynamics2DKheperaIVModel::Reset() {
       CDynamics2DSingleBodyObjectModel::Reset();
       m_cDiffSteering.Reset();
+      /* Release grippers and gripees */
+      m_pcGripper->Release();
+      m_pcGrippable->ReleaseAll();
+      /* Switch to turret passive mode if needed */
+      if(m_unLastTurretMode == MODE_SPEED_CONTROL ||
+         m_unLastTurretMode == MODE_POSITION_CONTROL) {
+         TurretActiveToPassive();
+         m_unLastTurretMode = MODE_OFF;
+         GetEmbodiedEntity().DisableAnchor("turret");
+      }
+      /* Reset the rest */ // TODO : Do we need this Multi Body Object Reset?
+      // CDynamics2DMultiBodyObjectModel::Reset();
    }
 
    /****************************************/
@@ -247,13 +273,23 @@ namespace argos {
             m_fPreviousTurretAngleError = fCurRotErr;
             break;
          }
+            case MODE_SPEED_CONTROL:
+            m_ptControlGripperBody->w =
+               m_cDiffSteering.GetAngularVelocity() +
+               m_cFootBotEntity.GetTurretEntity().GetDesiredRotationSpeed();
+            break;
+            case MODE_OFF: // TODO : We need  a Mode off I'm guessing
+            case MODE_PASSIVE: // We probably need to implement utilizing the force sensor values here
+               if(m_cGripperEntity.IsGripping() &&
+                  m_cGripperEntity.IsLocked()) {
+                  m_ptBaseGripperAngularMotion->maxForce = 0.0001f; /* limit the dragging torque */
+               }
+               else {
+                  m_ptBaseGripperAngularMotion->maxForce = FOOTBOT_MAX_TORQUE; /* limit the dragging torque */
+               }
+               break;
+      }
    }
-
-   /****************************************/
-   /****************************************/
-
-   REGISTER_STANDARD_DYNAMICS2D_OPERATIONS_ON_ENTITY(CKheperaIVEntity, CDynamics2DKheperaIVModel);
-
    /****************************************/
    /****************************************/
 
@@ -294,6 +330,10 @@ void CDynamics2DKheperaIVModel::TurretPassiveToActive() { // TODO : Check these
       m_ptBaseGripperAngularMotion->maxForce = KHEPERAIV_MAX_TORQUE; /* limit the dragging torque */ // TODO Need to make sure this is accurate in measures
    }
 
+   /****************************************/
+   /****************************************/
+
+
    void CDynamics2DKheperaIVModel::UpdateTurretAnchor(SAnchor& s_anchor) { // TODO : Check these
       s_anchor.Position.SetX(m_ptActualGripperBody->p.x);
       s_anchor.Position.SetY(m_ptActualGripperBody->p.y);
@@ -304,4 +344,24 @@ void CDynamics2DKheperaIVModel::TurretPassiveToActive() { // TODO : Check these
             CRadians(m_ptActualBaseBody->a)),
          CVector3::Z);
    }
+
+   /****************************************/
+   /****************************************/
+
+   // TODO : Ask Pinci about this
+   // void CDynamics2DFootBotModel::UpdateOriginAnchor(SAnchor& s_anchor) {
+   //    s_anchor.Position.SetX(m_ptActualBaseBody->p.x);
+   //    s_anchor.Position.SetY(m_ptActualBaseBody->p.y);
+   //    s_anchor.Orientation.FromAngleAxis(CRadians(m_ptActualBaseBody->a), CVector3::Z);
+   // }
+
+
+
+   /****************************************/
+   /****************************************/
+
+   REGISTER_STANDARD_DYNAMICS2D_OPERATIONS_ON_ENTITY(CKheperaIVEntity, CDynamics2DKheperaIVModel); // Unsure what this does
+
+   /****************************************/
+   /****************************************/
 }
