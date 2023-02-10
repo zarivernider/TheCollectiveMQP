@@ -18,8 +18,11 @@ namespace argos {
 
    static const Real KHEPERAIV_MASS                = 0.4f; // base khepera mass
    static const Real KHEPERAIV_MASS_W_TURRET       = 0.4f; // TODO: khepera mass with our new base
-   static const Real KHEPERAIV_MAX_FORCE           = 1.5f; // TODO: add updated ones for the added weight of our new base
-   static const Real KHEPERAIV_MAX_TORQUE          = 1.5f; // TODO: add updated ones for the added weight of our new base
+   static const Real KHEPERAIV_MAX_FORCE           = 1.5f;
+   static const Real KHEPERAIV_MAX_TORQUE          = 1.5f;
+
+   static const Real KHEPERAIV_TURRET_MAX_FORCE    = 1.5f; // TODO: add updated ones for the added weight of our new base
+   static const Real KHEPERAIV_TURRET_MAX_TORQUE   = 1.5f; // TODO: add updated ones for the added weight of our new base
 
    enum KHEPERAIV_WHEELS {
       KHEPERAIV_LEFT_WHEEL = 0,
@@ -41,11 +44,14 @@ namespace argos {
       CDynamics2DSingleBodyObjectModel(c_engine, c_entity),
       m_cKheperaIVEntity(c_entity),
       m_cWheeledEntity(m_cKheperaIVEntity.GetWheeledEntity()),
+      m_cGripperEntity(c_entity.GetGripperEquippedEntity()), // TODO : Make sure this is correctly placed
       m_cDiffSteering(c_engine,
                       KHEPERAIV_MAX_FORCE,
                       KHEPERAIV_MAX_TORQUE,
                       KHEPERAIV_WHEEL_DISTANCE,
                       c_entity.GetConfigurationNode()),
+      m_pcGripper(nullptr), // TODO : Do we need this? Pretty sure we don't since we aren't doing anything accurate
+      m_pcGrippable(nullptr),
       m_fCurrentWheelVelocity(m_cWheeledEntity.GetWheelVelocities()) {
       /* Create the body with initial position and orientation */
       cpBody* ptBody =
@@ -78,30 +84,38 @@ namespace argos {
          GetEmbodiedEntity().GetOriginAnchor(),
          &CDynamics2DKheperaIVBotModel::UpdateOriginAnchor);
       RegisterAnchorMethod<CDynamics2DKheperaIVBotModel>(
-         GetEmbodiedEntity().GetAnchor("turret"),
+         GetEmbodiedEntity().GetAnchor("turret"), // TODO : Make sure this is good and keeps same name as what we call the other anchor
          &CDynamics2DKheperaIVBotModel::UpdateTurretAnchor);
       RegisterAnchorMethod<CDynamics2DKheperaIVBotModel>(
          GetEmbodiedEntity().GetAnchor("perspective_camera"),
          &CDynamics2DKheperaIVBotModel::UpdatePerspectiveCameraAnchor);
    
-      /* Create the gripper body */     // TODO : Check over this  
+      /* Create the gripper body */     // TODO : Check over everything below this in this function
+      /* This shape is grippable */
+      m_pcGrippable = new CDynamics2DGrippable(GetEmbodiedEntity(),
+                                               m_ptBaseShape);
+      /* Constrain the actual base body to follow the diff steering control */
+      m_cDiffSteering.AttachTo(m_ptActualBaseBody);
+      /* Add the body so that the default methods work as expected */
+      AddBody(m_ptActualBaseBody, cpvzero, 0, FOOTBOT_HEIGHT);
+      /* Create the gripper body */      
       m_ptActualGripperBody =
          cpSpaceAddBody(GetDynamics2DEngine().GetPhysicsSpace(),
                         cpBodyNew(m_fMass / 20.0,
                                   cpMomentForCircle(m_fMass,
                                                     0.0f,
-                                                    KHEPERAIV_GRIPPER_RING_RADIUS + KHEPERAIV_GRIPPER_RING_RADIUS,
+                                                    FOOTBOT_RADIUS + FOOTBOT_RADIUS,
                                                     cpvzero)));
       m_ptActualGripperBody->p = cpv(cPosition.GetX(), cPosition.GetY());
       cpBodySetAngle(m_ptActualGripperBody,
                      cZAngle.GetValue() +
-                     m_cKheperaIVEntity.GetTurretEntity().GetRotation().GetValue());
+                     m_cFootBotEntity.GetTurretEntity().GetRotation().GetValue());
       /* Create the gripper shape */
       cpShape* ptGripperShape = 
          cpSpaceAddShape(GetDynamics2DEngine().GetPhysicsSpace(),
                          cpCircleShapeNew(m_ptActualGripperBody,
                                           0.01f,
-                                          cpv(KHEPERAIV_GRIPPER_RING_RADIUS, 0.0f)));
+                                          cpv(FOOTBOT_RADIUS, 0.0f)));
       m_pcGripper = new CDynamics2DGripper(GetDynamics2DEngine(),
                                            m_cGripperEntity,
                                            ptGripperShape);

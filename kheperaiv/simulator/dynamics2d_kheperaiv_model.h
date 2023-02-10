@@ -11,7 +11,7 @@ namespace argos {
    class CDynamics2DDifferentialSteeringControl;
    class CDynamics2DGripper;
    class CDynamics2DGrippable;
-   class CDynamics2DKheperaIVModel;
+   class CDynamics2DKheperaIVModel; // Ask Pinci if this should be here
 }
 
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_single_body_object_model.h>
@@ -31,6 +31,8 @@ namespace argos {
       virtual void Reset();
 
       virtual void UpdateFromEntityStatus();
+
+      // void UpdateOriginAnchor(SAnchor& s_anchor); // TODO : Do we need this? Probably not?
 
       void UpdateTurretAnchor(SAnchor& s_anchor);
 
@@ -54,8 +56,8 @@ namespace argos {
       void TurretPassiveToActive();
       void TurretActiveToPassive();
 
-      UInt8 m_unLastTurretMode;
-      Real m_fPreviousTurretAngleError;
+      CDynamics2DGripper*                    m_pcGripper;
+      CDynamics2DGrippable*                  m_pcGrippable;
       
       cpFloat  m_fMass;
       cpShape* m_ptBaseShape;
@@ -66,10 +68,10 @@ namespace argos {
       cpConstraint* m_ptBaseGripperLinearMotion;
       cpConstraint* m_ptBaseGripperAngularMotion;
 
-      CDynamics2DGripper*                    m_pcGripper;
-      CDynamics2DGrippable*                  m_pcGrippable;
-
       CGripperEquippedEntity& m_cGripperEntity;
+
+      UInt8 m_unLastTurretMode;
+      Real m_fPreviousTurretAngleError;
 
    };
 
