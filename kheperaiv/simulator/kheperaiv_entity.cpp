@@ -34,16 +34,17 @@ namespace argos {
 
    CKheperaIVEntity::CKheperaIVEntity() :
       CComposableEntity(NULL),
+      m_pcBatteryEquippedEntity(NULL), // TODO : Checck if moving this here is OK
       m_pcControllableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
       m_pcGroundSensorEquippedEntity(NULL),
+      m_pcKheperaIVTurretEntity(NULL),
       m_pcLEDEquippedEntity(NULL),
       m_pcLightSensorEquippedEntity(NULL),
       m_pcProximitySensorEquippedEntity(NULL),
       m_pcUltrasoundSensorEquippedEntity(NULL),
       m_pcRABEquippedEntity(NULL),
-      m_pcWheeledEntity(NULL),
-      m_pcBatteryEquippedEntity(NULL) {
+      m_pcWheeledEntity(NULL) { // m_pcBatteryEquippedEntity WAS down here
    }
 
    /****************************************/
@@ -57,17 +58,17 @@ namespace argos {
                                       size_t un_rab_data_size,
                                       const std::string& str_bat_model) :
       CComposableEntity(NULL, str_id),
+      m_pcBatteryEquippedEntity(NULL),
       m_pcControllableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
-      m_pcKheperaIVTurretEntity(NULL),
       m_pcGroundSensorEquippedEntity(NULL),
+      m_pcKheperaIVTurretEntity(NULL),
       m_pcLEDEquippedEntity(NULL),
       m_pcLightSensorEquippedEntity(NULL),
       m_pcProximitySensorEquippedEntity(NULL),
       m_pcUltrasoundSensorEquippedEntity(NULL),
       m_pcRABEquippedEntity(NULL),
-      m_pcWheeledEntity(NULL),
-      m_pcBatteryEquippedEntity(NULL) {
+      m_pcWheeledEntity(NULL) {
       try {
          /*
           * Create and init components
@@ -346,13 +347,14 @@ namespace argos {
          m_pcRABEquippedEntity->Update();
       if(m_pcBatteryEquippedEntity->IsEnabled())
          m_pcBatteryEquippedEntity->Update();
-      if(m_pcKheperaIVTurretEntity->IsEnabled()) // Melon : Is this ok?
+      if(m_pcKheperaIVTurretEntity->IsEnabled()) // TODO : Is this ok?
          m_pcKheperaIVTurretEntity->Update(); // TODO : Make this function and IsEnabled 
    }
 
    /****************************************/
    /****************************************/
-   
+    
+   // TODO : Add Turret Entity to registration thing
    REGISTER_ENTITY(CKheperaIVEntity,
                    "kheperaiv",
                    "Carlo Pinciroli [ilpincy@gmail.com]",

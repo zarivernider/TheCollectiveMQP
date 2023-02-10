@@ -11,8 +11,8 @@ namespace argos {
    class CBatteryEquippedEntity;
    class CControllableEntity;
    class CEmbodiedEntity;
-   class CKheperaIVEntity;
    class CGroundSensorEquippedEntity;
+   class CKheperaIVEntity;
    class CLEDEquippedEntity;
    class CLightSensorEquippedEntity;
    class CProximitySensorEquippedEntity;
@@ -48,7 +48,11 @@ namespace argos {
       virtual void Destroy();
 
       virtual void UpdateComponents();
-      
+
+      inline CBatteryEquippedEntity& GetBatterySensorEquippedEntity() {
+          return *m_pcBatteryEquippedEntity;
+      }
+
       inline CControllableEntity& GetControllableEntity() {
          return *m_pcControllableEntity;
       }
@@ -57,12 +61,12 @@ namespace argos {
          return *m_pcEmbodiedEntity;
       }
 
-      inline CKheperaIVTurretEntity& GetTurretEntity() {
-         return m_KheperaIVTurretEntity;
-      }
-
       inline CGroundSensorEquippedEntity& GetGroundSensorEquippedEntity() {
          return *m_pcGroundSensorEquippedEntity;
+      }
+
+      inline CKheperaIVTurretEntity& GetTurretEntity() {
+         return m_KheperaIVTurretEntity;
       }
 
       inline CLEDEquippedEntity& GetLEDEquippedEntity() {
@@ -93,10 +97,6 @@ namespace argos {
          return *m_pcWheeledEntity;
       }
 
-      inline CBatteryEquippedEntity& GetBatterySensorEquippedEntity() {
-          return *m_pcBatteryEquippedEntity;
-      }
-
       virtual std::string GetTypeDescription() const {
          return "kheperaiv";
       }
@@ -107,10 +107,11 @@ namespace argos {
 
    private:
 
+      CBatteryEquippedEntity*         m_pcBatteryEquippedEntity;
       CControllableEntity*            m_pcControllableEntity;
       CEmbodiedEntity*                m_pcEmbodiedEntity;
-      CKheperaIVTurretEntity*         m_pcKheperaIVTurretEntity;
       CGroundSensorEquippedEntity*    m_pcGroundSensorEquippedEntity;
+      CKheperaIVTurretEntity*         m_pcKheperaIVTurretEntity;
       CLEDEquippedEntity*             m_pcLEDEquippedEntity;
       CLightSensorEquippedEntity*     m_pcLightSensorEquippedEntity;
       CProximitySensorEquippedEntity* m_pcProximitySensorEquippedEntity;
@@ -118,7 +119,6 @@ namespace argos {
       CProximitySensorEquippedEntity* m_pcLIDARSensorEquippedEntity;
       CRABEquippedEntity*             m_pcRABEquippedEntity;
       CWheeledEntity*                 m_pcWheeledEntity;
-      CBatteryEquippedEntity*         m_pcBatteryEquippedEntity;
    };
 
 }
