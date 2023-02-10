@@ -18,6 +18,8 @@ const Real KHEPERAIV_WHEEL_RADIUS        = 0.021;
 const Real KHEPERAIV_WHEEL_DISTANCE      = 0.1054;
 const Real KHEPERAIV_HALF_WHEEL_DISTANCE = KHEPERAIV_WHEEL_DISTANCE * 0.5;
 
+const Real KHEPERAIV_GRIPPER_RING_RADIUS = 0.0704;
+
 const Real KHEPERAIV_IR_SENSORS_RING_ELEVATION = 0.0145;
 const Real KHEPERAIV_IR_SENSORS_RING_RADIUS    = KHEPERAIV_BASE_RADIUS;
 const Real KHEPERAIV_IR_SENSORS_RING_RANGE     = 0.12;
@@ -46,7 +48,7 @@ const CRadians KHEPERAIV_LIDAR_ANGLE_SPAN(ToRadians(CDegrees(210.0)));
 const CRange<Real> KHEPERAIV_LIDAR_SENSORS_RING_RANGE(0.02, 4.0);
 
 /* TODO : Measurements for The Collective gripper*/
-const Real KHEPERAIV_GRIPPER_RING_RADIUS = 0.0704;
+
 
 
 /****************************************/

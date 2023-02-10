@@ -17,6 +17,7 @@
 #include <argos3/plugins/simulator/entities/light_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
+#include "kheperaiv_turret_entity.h"
 
 static CRadians ULTRASOUND_SENSOR_ANGLES[5] = {
    CRadians::ZERO,
@@ -82,6 +83,8 @@ namespace argos {
          SAnchor& cTurretAnchor = m_pcEmbodiedEntity->AddAnchor("turret");
          m_pcKheperaIVTurretEntity = new CKhepearIVTurretEntity(this, "turret_0", cTurretAnchor);
          AddComponent(*m_pcKheperaIVTurretEntity);
+         m_pcTurretEntity = new CKheperaivTurretEntity(this, "turret_0", cTurretAnchor);
+         AddComponent(*m_pcTurretEntity);
 
          m_pcWheeledEntity->SetWheel(0, CVector3(0.0f,  KHEPERAIV_HALF_WHEEL_DISTANCE, 0.0f), KHEPERAIV_WHEEL_RADIUS);
          m_pcWheeledEntity->SetWheel(1, CVector3(0.0f, -KHEPERAIV_HALF_WHEEL_DISTANCE, 0.0f), KHEPERAIV_WHEEL_RADIUS);
@@ -209,6 +212,8 @@ namespace argos {
          SAnchor& cTurretAnchor = m_pcEmbodiedEntity->AddAnchor("turret");
          m_pcKheperaIVTurretEntity = new CKhepearIVTurretEntity(this, "turret_0", cTurretAnchor);
          AddComponent(*m_pcKheperaIVTurretEntity);
+         m_pcTurretEntity = new CKheperaivTurretEntity(this, "turret_0", cTurretAnchor);
+         AddComponent(*m_pcTurretEntity);
 
          /* LED equipped entity, with LEDs [0-11] and beacon [12] */
          m_pcLEDEquippedEntity = new CLEDEquippedEntity(this, "leds_0");
@@ -341,6 +346,8 @@ namespace argos {
          m_pcRABEquippedEntity->Update();
       if(m_pcBatteryEquippedEntity->IsEnabled())
          m_pcBatteryEquippedEntity->Update();
+      if(m_pcKheperaIVTurretEntity->IsEnabled()) // Melon : Is this ok?
+         m_pcKheperaIVTurretEntity->Update(); // TODO : Make this function and IsEnabled 
    }
 
    /****************************************/

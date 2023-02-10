@@ -31,7 +31,17 @@ namespace argos {
       virtual void Reset();
 
       virtual void UpdateFromEntityStatus();
-      
+
+      void UpdateTurretAnchor(SAnchor& s_anchor);
+
+      inline cpBody* GetActualGripperBody() {
+         return m_ptActualGripperBody;
+      }
+
+      inline const cpBody* GetActualGripperBody() const {
+         return m_ptActualGripperBody;
+      }
+
    private:
 
       CKheperaIVEntity& m_cKheperaIVEntity;
@@ -40,6 +50,26 @@ namespace argos {
       CDynamics2DDifferentialSteeringControl m_cDiffSteering;
 
       const Real* m_fCurrentWheelVelocity;
+
+      void TurretPassiveToActive();
+      void TurretActiveToPassive();
+
+      UInt8 m_unLastTurretMode;
+      Real m_fPreviousTurretAngleError;
+      
+      cpFloat  m_fMass;
+      cpShape* m_ptBaseShape;
+      cpBody*  m_ptActualBaseBody;
+      cpBody*  m_ptActualGripperBody;
+      cpBody*  m_ptControlGripperBody;
+      cpConstraint* m_ptGripperControlAngularMotion;
+      cpConstraint* m_ptBaseGripperLinearMotion;
+      cpConstraint* m_ptBaseGripperAngularMotion;
+
+      CDynamics2DGripper*                    m_pcGripper;
+      CDynamics2DGrippable*                  m_pcGrippable;
+
+      CGripperEquippedEntity& m_cGripperEntity;
 
    };
 

@@ -17,6 +17,7 @@ namespace argos {
    class CLightSensorEquippedEntity;
    class CProximitySensorEquippedEntity;
    class CRABEquippedEntity;
+   class CKheperaIVTurretEntity; // TODO : Do we stick kheperaiv entity here too? - put alphabetically
 }
 
 #include <argos3/core/simulator/entity/composable_entity.h>
