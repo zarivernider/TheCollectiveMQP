@@ -52,7 +52,8 @@ uint16_t forceSensor = 20;
 void setup() {
   // Initialize classes 
   // stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
-  // gripper.attach();
+  gripper.attach();
+  // gripper.setMinMax(0,180);
   // motor.init();
   // extLED.init();
   // absoluteEncoder.init();
@@ -85,6 +86,18 @@ void loop() {
   // // put your main code here, to run repeatedly:
   // Serial.println("Begin transaction");
 
+
+  for(int i = 0; i < 180; i++) {
+    gripper.setServo(i);
+    delay(50);
+  }
+      gripper.setServo(0);
+      delay(500);
+
+  // gripper.setServo(0);
+  // delay(2000);
+  // gripper.setServo(180);
+  // delay(2000);
   // i2cMain.beginTransmission(I2C_Sec_Address);
   // Serial.println("Begin");
   // Serial.println(*(io_rw_32*)(I2C0_BASE | I2C_IC_STATUS_OFFSET), HEX);
@@ -146,18 +159,18 @@ void loop() {
   // Serial.println(*(io_rw_32*)(I2C0_BASE + I2C_IC_ENABLE_OFFSET), HEX);
 
   // delay(1000);
-  delay(1000);
-  Serial.println("Sending data");
-  Serial.println(*(io_rw_32*)(PADS_BANK0_BASE + 0x50), HEX);
+  // delay(1000);
+  // Serial.println("Sending data");
+  // Serial.println(*(io_rw_32*)(PADS_BANK0_BASE + 0x50), HEX);
 
-  i2cMain.sdkwriteData(I2C_Sec_Address, 0x1, 0x1234);
-  uint16_t returnValue;
-  uint16_t read = i2cMain.sdkreadData(I2C_Sec_Address, 0x1, &returnValue);
-  Serial.print(read, HEX);
-  Serial.print("\t");
-  Serial.print(returnValue, HEX);
-  Serial.print("\t");
-  Serial.println(forceSensor, HEX);
+  // i2cMain.sdkwriteData(I2C_Sec_Address, 0x1, 0x1234);
+  // uint16_t returnValue;
+  // uint16_t read = i2cMain.sdkreadData(I2C_Sec_Address, 0x1, &returnValue);
+  // Serial.print(read, HEX);
+  // Serial.print("\t");
+  // Serial.print(returnValue, HEX);
+  // Serial.print("\t");
+  // Serial.println(forceSensor, HEX);
   
   delay(2000);
 

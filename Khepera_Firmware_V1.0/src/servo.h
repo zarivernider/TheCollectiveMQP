@@ -18,8 +18,8 @@ private:
   #define clockDivider 10
   #define clockTOP 62499
   #define clockTickuS ((float)clockDivider / 125) // Calculate clock tick period in uS
-  #define presetMinuS 500 // Set undefined minimum time in microseconds
-  #define presetMaxuS 2400 // Set undefined max time in microseconds
+  #define presetMinuS 100 // Set undefined minimum time in microseconds
+  #define presetMaxuS 3200 // Set undefined max time in microseconds
 public:
 Servo(uint8_t pwmPin) { // Set up servo for 500 - 2400 uS pulse width
     minCount = ceil( (float)presetMinuS / clockTickuS); // ceil to not be less than minimum
