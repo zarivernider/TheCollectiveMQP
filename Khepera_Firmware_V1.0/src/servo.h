@@ -15,26 +15,26 @@ private:
   float minAngle = 0; // min angle for servo
   bool isattach = false; // Is servo attached
   uint8_t pwmPin = 0;
-
-
+  #define clockDivider 10
+  #define clockTOP 62499
+  #define clockTickuS ((float)clockDivider / 125) // Calculate clock tick period in uS
+  #define presetMinuS 500 // Set undefined minimum time in microseconds
+  #define presetMaxuS 2400 // Set undefined max time in microseconds
 public:
 Servo(uint8_t pwmPin) { // Set up servo for 500 - 2400 uS pulse width
-    // Clock is 105 nS per tick. Convert input from uS to nS and get clock tick. 
-    minCount = 4762; // set minimum time for 500 uS
-    maxCount = 22857; // set maximum time for 2400 uS
+    minCount = ceil( (float)presetMinuS / clockTickuS); // ceil to not be less than minimum
+    maxCount = floor( (float)presetMaxuS / clockTickuS); // floor to not be more than maximum
     Servo::pwmPin = pwmPin; // set pwm pin
   } 
   
   Servo(uint8_t pwmPin, float usMin, float usMax) { // Set up the servo a custom pulse width time
-    // Clock is 105 nS per tick. Convert input from uS to nS and get clock tick. 
-    minCount = ceil((usMin*1000) / 105); // ceil to not be less than minimum
-    maxCount = floor((usMax*1000) / 105); // floor to not be more than maximum
+    minCount = ceil( (float)usMin / clockTickuS); // ceil to not be less than minimum
+    maxCount = floor( (float)usMax / clockTickuS); // floor to not be more than maximum
     Servo::pwmPin = pwmPin; // set pwm pin
   } 
   Servo(uint8_t pwmPin, float usMin, float usMax, float minAngle, float maxAngle) { // Set up the servo for a custom pulse width and angle range
-    // Clock is 105 nS per tick. Convert input from uS to nS and get clock tick. 
-    minCount = ceil((usMin*1000) / 105); // ceil to not be less than minimum
-    maxCount = floor((usMax*1000) / 105); // floor to not be more than maximum
+    minCount = ceil( (float)usMin / clockTickuS); // ceil to not be less than minimum
+    maxCount = floor( (float)usMax / clockTickuS); // floor to not be more than maximum
     Servo::pwmPin = pwmPin; // set pwm pin
     Servo::minAngle = minAngle; // set min servo angle
     Servo::maxAngle = maxAngle; // set max servo angle
