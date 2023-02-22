@@ -3,6 +3,16 @@
 void APA102::Init(void)
   {
     SPI.begin();
+    // Enable proper GPIO pins
+    uint8_t MOSIoffset = MOSIpin * 0x08; // Offset repeats every 0x8 register addresses. Gets to GPIOx_STATUS
+    uint8_t SCLKoffset = SCLKpin * 0x08; // Offset repeats every 0x8 register addresses. Gets to GPIOx_STATUS
+
+    writeReg(IO_BANK0_BASE | (0x04 + MOSIoffset), 5, 0, 1); // func select -> 1 = SPI
+    writeReg(IO_BANK0_BASE | (0x04 + MOSIoffset), 2, 12, 0); // Pin output -> 0 = func select, 2 = disable output
+
+    writeReg(IO_BANK0_BASE | (0x04 + SCLKoffset), 5, 0, 1); // func select -> 1 = SPI
+    writeReg(IO_BANK0_BASE | (0x04 + SCLKoffset), 2, 12, 0); // Pin output -> 0 = func select, 2 = disable output
+
     // Zero all pixels
     for(uint16_t i = 0; i < length; i++) pixels[i] = MakeColor(0, 0, 0); // Clear color of all LEDs
     Show(); //should clear all

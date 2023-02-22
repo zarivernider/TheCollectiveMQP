@@ -41,7 +41,7 @@ Stepper(uint8_t pwmPin, uint8_t directionPin, uint8_t enablePin) { // Set up ser
   void setSpeed(int16_t RPMspeed);
   void setDirection(bool isFwd);
   void brakeStop();
-
+  void setFreq(int16_t freq);
 
 };
 

@@ -4,11 +4,14 @@
   Colors are manipulated in RGB format
 */
 #include <SPI.h>
+#include "system_pi_pico.h"
 // arduino::MbedSPI SPI1(NC, 3, 2);
 
 class APA102
 {
 private:
+  #define MOSIpin 7
+  #define SCLKpin 6
   // Data type to define a pixel in RGB
   struct pixel {
     uint8_t r = 0;

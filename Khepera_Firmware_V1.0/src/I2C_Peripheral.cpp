@@ -37,7 +37,12 @@ static inline void i2cHandle() {
 void I2C_P::init(uint8_t address) {
 
     I2C_P::I2C_Addr = address; // Store its own address
-    
+    uint8_t SDApadOffset = 0x14;
+    uint8_t SCLpadOffset = 0x18;
+    writeReg(PADS_BANK0_BASE + SCLpadOffset, 1, 2, 0); // Disable pull-down
+    writeReg(PADS_BANK0_BASE + SDApadOffset, 1, 2, 0); // Disable pull-down
+    writeReg(PADS_BANK0_BASE + SCLpadOffset, 1, 3, 1); // Enable pull-up
+    writeReg(PADS_BANK0_BASE + SDApadOffset, 1, 3, 1); // Enable pull-up
     hw_write_masked((io_rw_32*)(WATCHDOG_BASE),
                     0x0, // Get bit 30
                     0x40000000); // Set to 0 (Set ctrl to 0)
