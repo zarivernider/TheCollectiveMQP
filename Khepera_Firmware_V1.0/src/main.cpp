@@ -69,6 +69,7 @@ void setup() {
   // gripper.attach();
   delay(100);
   motor.init();
+
   // extLED.init();
   // absoluteEncoder.init();
   // adc.initMulti();
@@ -100,6 +101,7 @@ void loop() {
   // Serial.print("\t");
   // Serial.print(adc.getrawADCMulti(2));
   // Serial.print("\t");
+
   // Serial.print(read, HEX);
   // Serial.print("\t");
   // Serial.print(returnValue, HEX);

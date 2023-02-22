@@ -6,8 +6,8 @@ void Servo::attach() {
     uint8_t ioOffset = pwmPin * 0x08; // Offset repeats every 0x8 register addresses. Gets to GPIOx_STATUS
     writeReg(IO_BANK0_BASE | (0x04 + ioOffset), 5, 0, 4); // func select -> 4 = PWM
     writeReg(IO_BANK0_BASE | (0x04 + ioOffset), 2, 12, 0); // Pin output -> 0 = func select, 2 = disable output
-    writeReg(PWM_BASE | (0x04 + pwmOffset), 8, 4, 14); // CHx_DIV. Set the divider to 14. Clock becomes 133 MHz -> 9.5 MHz
-    writeReg(PWM_BASE | (0x10 + pwmOffset), 16, 0, 47499); // CHx_TOP. fPWM = 9.5 MHz / (TOP + 1) = 200 Hertz (5 mS period)
+    writeReg(PWM_BASE | (0x04 + pwmOffset), 8, 4, clockDivider); // CHx_DIV. Set the divider to 14. Clock becomes 125 MHz -> 12.5 MHz
+    writeReg(PWM_BASE | (0x10 + pwmOffset), 16, 0, clockTOP); // CHx_TOP. fPWM = 12.5 MHz / (TOP + 1) = 200 Hertz (5 mS period)
     writeReg(PWM_BASE | (0x00 + pwmOffset), 1, 0, 1); // CHx_CSR off enable on
     isattach = true; // set flag true
 }
@@ -20,9 +20,8 @@ void Servo::detach() {
 
 void Servo::setMinMax(uint16_t usMin, uint16_t usMax) {
     if(usMax > 5000) return; // Do not allow any value larger than 5000 uS 
-    // Clock is 105 nS per tick. Convert input from uS to nS and get clock tick. 
-    minCount = ceil((usMin*1000) / 105); // ceil to not be less than minimum
-    maxCount = floor((usMax*1000) / 105); // floor to not be more than maximum
+    minCount = ceil( (float)usMin  / clockTickuS ); // ceil to not be less than minimum
+    maxCount = floor( (float)usMax / clockTickuS); // floor to not be more than maximum
 }
 
 void Servo::setServo(uint16_t degrees) {
