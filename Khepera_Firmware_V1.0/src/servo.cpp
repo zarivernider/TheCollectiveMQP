@@ -27,6 +27,7 @@ void Servo::setMinMax(uint16_t usMin, uint16_t usMax) {
 void Servo::setServo(uint16_t degrees) {
     if (!isattach) attach();
     uint8_t Aoffset = pwmPin % 2 == 1 ? 16 : 0; // if even then A side controller, if odd then B controller
+    degrees = constrain(degrees, minAngle, maxAngle); // Constrain from 0 to 180 degrees
     unsigned int linCount = map(degrees, minAngle, maxAngle, minCount, maxCount); // Linearily map the number of ticks across set angle
     uint8_t pwmScale = (pwmPin > 15) ? pwmPin - 16 : pwmPin; // Channels wrap so pin 0 and 16 on same channel
     uint8_t pwmOffset = (int)(pwmScale/2) * 0x14; // Offset repeats every 0x14 register addresses. Gets to CHx_CSR
