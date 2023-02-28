@@ -51,7 +51,7 @@ ToDo List:
 // I2C Register map
 uint16_t turretPosition = 0; // 0x00: Desired position
 uint16_t turretEncoder = 0; // 0x01: Actual position
-int16_t turretSpeed = 0; // 0x02: Current speed the turret is moving
+uint16_t turretSpeed = 0; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
 uint16_t turretMaxSpeed = 0; // 0x03: Max speed the turret can move
 uint16_t turretMaxTolerance = 0; // 0x04: Tolerance of PID function
 uint16_t turretKp = 0; // 0x05: Q15 representation of the proportional constant
@@ -104,29 +104,56 @@ I2C_M i2cMain(I2C1SDAPin, I2C1SCLPin, i2c1);
 // Global Variables
 uint16_t forceSensor = 20;
 void setup() {
+  // Initialize variables memory address to I2C registers
+  i2c_p.arrMap[0] = &turretPosition;
+  i2c_p.arrMap[1] = &turretEncoder;
+  i2c_p.arrMap[2] = &turretSpeed;
+  i2c_p.arrMap[3] = &turretMaxSpeed;
+  i2c_p.arrMap[4] = &turretMaxTolerance;
+  i2c_p.arrMap[5] = &turretKp;
+  i2c_p.arrMap[6] = &turretKi;
+  i2c_p.arrMap[7] = &turretKd;
+  i2c_p.arrMap[8] = &turretState;
+  i2c_p.arrMap[9] = &isGripper;
+  i2c_p.arrMap[10] = &gripperPresets;
+  i2c_p.arrMap[11] = &forceSensorParallel;
+  i2c_p.arrMap[12] = &forceSensorPerpendicular;
+  i2c_p.arrMap[13] = &LEDbrightness;
+  i2c_p.arrMap[14] = &LEDcolorPresets[0];
+  i2c_p.arrMap[15] = &LEDcolorPresets[1]; 
+  i2c_p.arrMap[16] = &LEDcolorPresets[2]; 
+  i2c_p.arrMap[17] = &LEDcolorPresets[3]; 
+  i2c_p.arrMap[18] = &LEDcolorPresets[4]; 
+  i2c_p.arrMap[19] = &LEDcolorPresets[5]; 
+  i2c_p.arrMap[20] = &LEDcolorPresets[6]; 
+  i2c_p.arrMap[21] = &LEDcolorPresets[7]; 
+  i2c_p.arrMap[22] = &LEDcolors[0];
+  i2c_p.arrMap[23] = &LEDcolors[1];
+  i2c_p.arrMap[24] = &LEDcolors[2];
+  i2c_p.arrMap[25] = &LEDcolors[3];
+  i2c_p.arrMap[26] = &LEDflush;
+  i2c_p.arrMap[27] = &writeEEPROM;
+
+
+
   // Initialize classes 
   stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
   // gripper.attach();
-  delay(100);
   motor.init();
 
   // extLED.init();
   // absoluteEncoder.init();
   adc.initMulti();
-  // i2c_p.init(I2C_Sec_Address);
-  // i2c_p.arrMap[1] = &forceSensor;
+  i2c_p.init(I2C_Sec_Address);
   // i2cMain.sdkInit();
-  delay(5000);
-      motor.writeAddress(regConfaddress, 0x103); // Enable internal Rsense resistors
-      uint32_t setOTPmessage = 0x6 | (0x0 << 4) | (0xbd << 8);
-      motor.writeAddress(regOTPaddress, setOTPmessage); // Set OTP to use internal memorys
-  motor.enable(true);
+  delay(1000);
 }
 
 void loop() {
-  // Execute gripper
-  uint8_t gripperPos = isGripper & 0x1 ? (gripperPresets >> 8) : gripperPresets & 0xFF;
-  gripper.setServo(gripperPos);
+
+  // // Execute gripper
+  // uint8_t gripperPos = isGripper & 0x1 ? (gripperPresets >> 8) : gripperPresets & 0xFF;
+  // gripper.setServo(gripperPos);
 
   // Update LEDs
   if(LEDflush & 0x1) {
@@ -146,8 +173,8 @@ void loop() {
     LEDflush = 0x0;
   }
 
-// Set encoder position
-turretEncoder = absoluteEncoder.getCtr();
+// // Set encoder position
+// turretEncoder = absoluteEncoder.getCtr();
 
 if(writeEEPROM & 0x1) {
   // Make diagnostic LED bright

@@ -47,7 +47,7 @@ void Stepper::init() {
     writeReg(PADS_BANK0_BASE + padOffset, 1, 2, 0); // Disable pull-down
 
     
-    Stepper::writeAddress(regConfaddress, 0x103); // Enable internal Rsense resistors
+    // Stepper::writeAddress(regConfaddress, 0x103); // Enable internal Rsense resistors
     
     // Initialize IO
     Stepper::enGPIO.init();
