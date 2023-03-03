@@ -12,12 +12,13 @@
 #include <argos3/core/simulator/entity/controllable_entity.h>
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/plugins/simulator/entities/battery_equipped_entity.h>
+#include <argos3/plugins/simulator/entities/griper_equipped_entity.h> // make sure this is right includes
 #include <argos3/plugins/simulator/entities/ground_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/led_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/light_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/proximity_sensor_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
-#include "kheperaiv_turret_entity.h"
+#include "kheperaiv_turret_entity.h" // This should be correct
 
 static CRadians ULTRASOUND_SENSOR_ANGLES[5] = {
    CRadians::ZERO,
@@ -34,11 +35,12 @@ namespace argos {
 
    CKheperaIVEntity::CKheperaIVEntity() :
       CComposableEntity(NULL),
-      m_pcBatteryEquippedEntity(NULL), // TODO : Checck if moving this here is OK
+      m_pcBatteryEquippedEntity(NULL), // We moved this order since it wasn't alphabetical...
       m_pcControllableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
+      m_pcGripperEquippedEntity(NULL), // Added gripper here
       m_pcGroundSensorEquippedEntity(NULL),
-      m_pcKheperaIVTurretEntity(NULL),
+      m_pcKheperaIVTurretEntity(NULL), // Added turret here
       m_pcLEDEquippedEntity(NULL),
       m_pcLightSensorEquippedEntity(NULL),
       m_pcProximitySensorEquippedEntity(NULL),
@@ -58,11 +60,12 @@ namespace argos {
                                       size_t un_rab_data_size,
                                       const std::string& str_bat_model) :
       CComposableEntity(NULL, str_id),
-      m_pcBatteryEquippedEntity(NULL),
+      m_pcBatteryEquippedEntity(NULL), // We moved this order since it wasn't alphabetical...
       m_pcControllableEntity(NULL),
       m_pcEmbodiedEntity(NULL),
+      m_pcGripperEquippedEntity(NULL), // Added gripper here
       m_pcGroundSensorEquippedEntity(NULL),
-      m_pcKheperaIVTurretEntity(NULL),
+      m_pcKheperaIVTurretEntity(NULL), // Added turret here
       m_pcLEDEquippedEntity(NULL),
       m_pcLightSensorEquippedEntity(NULL),
       m_pcProximitySensorEquippedEntity(NULL),
@@ -84,8 +87,16 @@ namespace argos {
          SAnchor& cTurretAnchor = m_pcEmbodiedEntity->AddAnchor("turret");
          m_pcKheperaIVTurretEntity = new CKhepearIVTurretEntity(this, "turret_0", cTurretAnchor);
          AddComponent(*m_pcKheperaIVTurretEntity);
-         m_pcTurretEntity = new CKheperaivTurretEntity(this, "turret_0", cTurretAnchor);
-         AddComponent(*m_pcTurretEntity);
+         // m_pcTurretEntity = new CKheperaivTurretEntity(this, "turret_0", cTurretAnchor);
+         // AddComponent(*m_pcTurretEntity); // This is the footbot code we used as a base
+         /* Gripper equipped entity */
+         m_pcGripperEquippedEntity =
+            new CGripperEquippedEntity(this,
+                                       "gripper_0",
+                                       CVector3(KHEPERAIV_GRIPPER_RING_RADIUS, 0.0f, KHEPERAIV_GRIPPER_ELEVATION),
+                                       CVector3::X);
+         AddComponent(*m_pcGripperEquippedEntity);
+         /* The above code was taken directly from footbot */
 
          m_pcWheeledEntity->SetWheel(0, CVector3(0.0f,  KHEPERAIV_HALF_WHEEL_DISTANCE, 0.0f), KHEPERAIV_WHEEL_RADIUS);
          m_pcWheeledEntity->SetWheel(1, CVector3(0.0f, -KHEPERAIV_HALF_WHEEL_DISTANCE, 0.0f), KHEPERAIV_WHEEL_RADIUS);
@@ -120,7 +131,7 @@ namespace argos {
                CVector3(KHEPERAIV_ULTRASOUND_SENSORS_RING_RADIUS +
                         KHEPERAIV_ULTRASOUND_SENSORS_RING_RANGE.GetMin(),
                         CRadians::ZERO,
-                        ULTRASOUND_SENSOR_ANGLES[i]), // offset
+                        ULTRASOUND_SENSOR_ANGLES[i]), // offsetg
                CVector3(1.0,
                         CRadians::ZERO,
                         ULTRASOUND_SENSOR_ANGLES[i]), // direction
@@ -213,8 +224,18 @@ namespace argos {
          SAnchor& cTurretAnchor = m_pcEmbodiedEntity->AddAnchor("turret");
          m_pcKheperaIVTurretEntity = new CKhepearIVTurretEntity(this, "turret_0", cTurretAnchor);
          AddComponent(*m_pcKheperaIVTurretEntity);
-         m_pcTurretEntity = new CKheperaivTurretEntity(this, "turret_0", cTurretAnchor);
-         AddComponent(*m_pcTurretEntity);
+         // m_pcTurretEntity = new CKheperaivTurretEntity(this, "turret_0", cTurretAnchor);
+         // AddComponent(*m_pcTurretEntity); // This is the footbot code we used as a base
+         /* Gripper equipped entity */
+         m_pcGripperEquippedEntity =
+            new CGripperEquippedEntity(this,
+                                       "gripper_0",
+                                       CVector3(KHEPERAIV_GRIPPER_RING_RADIUS, 0.0f, KHEPERAIV_GRIPPER_ELEVATION),
+                                       CVector3::X);
+         AddComponent(*m_pcGripperEquippedEntity);
+         /* The above code was taken directly from footbot */
+
+         
 
          /* LED equipped entity, with LEDs [0-11] and beacon [12] */
          m_pcLEDEquippedEntity = new CLEDEquippedEntity(this, "leds_0");
@@ -347,6 +368,8 @@ namespace argos {
          m_pcRABEquippedEntity->Update();
       if(m_pcBatteryEquippedEntity->IsEnabled())
          m_pcBatteryEquippedEntity->Update();
+      if(m_pcGripperEquippedEntity->IsEnabled())
+         m_pcGripperEquippedEntity->Update();
       if(m_pcKheperaIVTurretEntity->IsEnabled()) // TODO : Is this ok?
          m_pcKheperaIVTurretEntity->Update(); // TODO : Make this function and IsEnabled 
    }
@@ -354,7 +377,7 @@ namespace argos {
    /****************************************/
    /****************************************/
     
-   // TODO : Add Turret Entity to registration thing
+   // TODO : Add Turret Entity to registration
    REGISTER_ENTITY(CKheperaIVEntity,
                    "kheperaiv",
                    "Carlo Pinciroli [ilpincy@gmail.com]",

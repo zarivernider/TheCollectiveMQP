@@ -1,3 +1,5 @@
+TODO : FOR buzz_controller_kheperaiv.cpp:
+
 Line 630 buzz_footbot_controller.cpp: Turret and gripper functions (In CBuzzControllerFootBot::RegisterFunctions())
    if(m_pcGripper) {
       /* BuzzGripperLock */
@@ -150,3 +152,39 @@ void CBuzzControllerFootBot::TurretSet(Real f_rotation) {
    m_pcTurretA->SetRotation(CRadians(f_rotation));
 }
 
+TODO : FOR buzz_controller_kheperaiv.h
+include control_interface/ci_kheperaiv_turret_actuator.h and ci_kheperaiv_gripper_actuator.h
+// Will also need
+include control_interface/ci_kheperaiv_force_sensor.h
+
+Need void functions in public : 
+   void GripperLock();
+   void GripperUnlock();
+   void TurretEnable();
+   void TurretDisable();
+   void TurretSet(Real f_rotation);
+   // Also any functions like line 552 above for force sensor we need
+Need protected CCI : 
+   /* Pointer to the foot-bot gripper actuator */
+   CCI_FootBotGripperActuator* m_pcGripper;
+   /* Pointer to the foot-bot turret actuator */
+   CCI_FootBotTurretActuator* m_pcTurretA;
+   /* Pointer to the kheperaiv force sensor as well */
+   // Need to make this CCI for it
+   
+Only have 8 proximity sensors, need to edit zmq_utility.py line 14 to have sensors from 0 to 7
+zmq_utility is in pytorch/python_code/zmq_utility.py
+
+TODO : FOR collectiveRlTransport.h:
+Change all instances of footbot into kheperaiv
+FOR collectiveRlTransport.cpp:
+Change all instances of footbot into kheperaiv
+make sure number of proximity sensors was adjusted in zmq_utility.py (pytorch/python_code/Data/)
+FOR collectiveRlTransort0/-1/_template.argos:
+unsure if this is a generated xml or if we have to edit it
+
+TODO : For kheperaiv_entity.cpp : kheperaiv_entity.h should be good, but we missed everything with the gripper so we now need to fix that in the .cpp
+
+
+   
+   

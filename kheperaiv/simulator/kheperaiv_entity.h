@@ -11,13 +11,14 @@ namespace argos {
    class CBatteryEquippedEntity;
    class CControllableEntity;
    class CEmbodiedEntity;
+   class CGripperEquippedEntity; // We added this
    class CGroundSensorEquippedEntity;
    class CKheperaIVEntity;
+   class CKheperaIVTurretEntity; // We added this
    class CLEDEquippedEntity;
    class CLightSensorEquippedEntity;
    class CProximitySensorEquippedEntity;
    class CRABEquippedEntity;
-   class CKheperaIVTurretEntity; // TODO : Do we stick kheperaiv entity here too? - put alphabetically
 }
 
 #include <argos3/core/simulator/entity/composable_entity.h>
@@ -61,12 +62,16 @@ namespace argos {
          return *m_pcEmbodiedEntity;
       }
 
+      inline CGripperEquippedEntity& GetGripperEquippedEntity() {
+         return *m_pcGripperEquippedEntity;
+      }
+
       inline CGroundSensorEquippedEntity& GetGroundSensorEquippedEntity() {
          return *m_pcGroundSensorEquippedEntity;
       }
 
       inline CKheperaIVTurretEntity& GetTurretEntity() {
-         return m_KheperaIVTurretEntity;
+         return *m_pcKheperaIVTurretEntity;
       }
 
       inline CLEDEquippedEntity& GetLEDEquippedEntity() {
@@ -110,6 +115,7 @@ namespace argos {
       CBatteryEquippedEntity*         m_pcBatteryEquippedEntity;
       CControllableEntity*            m_pcControllableEntity;
       CEmbodiedEntity*                m_pcEmbodiedEntity;
+      CGripperEquippedEntity*         m_pcGripperEquippedEntity;
       CGroundSensorEquippedEntity*    m_pcGroundSensorEquippedEntity;
       CKheperaIVTurretEntity*         m_pcKheperaIVTurretEntity;
       CLEDEquippedEntity*             m_pcLEDEquippedEntity;
@@ -118,7 +124,7 @@ namespace argos {
       CProximitySensorEquippedEntity* m_pcUltrasoundSensorEquippedEntity;
       CProximitySensorEquippedEntity* m_pcLIDARSensorEquippedEntity;
       CRABEquippedEntity*             m_pcRABEquippedEntity;
-      CWheeledEntity*                 m_pcWheeledEntity;
+      CWheeledEntity*                 m_pcWheeledEntity; // From wheeled_entity.h
    };
 
 }

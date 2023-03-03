@@ -2,6 +2,7 @@
 # kheperaiv headers
 #
 # argos3/plugins/robots/kheperaiv/control_interface
+# TODO : add all new control interfaces to this cmakelists.txt
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_KHEPERAIV_CONTROLINTERFACE
   control_interface/ci_kheperaiv_camera_sensor.h
   control_interface/ci_kheperaiv_encoder_sensor.h

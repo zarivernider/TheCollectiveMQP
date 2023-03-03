@@ -17,18 +17,6 @@ void error_Log(char* fileline){
 	fprintf(f,"%s",line);
 }
 
-int initGripper( void )
-{
-  error_Log("Starting initialization for the cgripper_init()");
-  if( cgripper_init() == 0 ){
-	  error_Log("Gripper might have been initialized");
-	  return 0;
-  }
-  error_Log("Gripper initialization might have failed");
-  return -1;
-
-}
-
 int main( int arc, char *argv[])
 {
   f = fopen("test.log","w");
@@ -45,10 +33,10 @@ int main( int arc, char *argv[])
     unsigned short message = 13;
 
     while (1)
-    { // Constantly send message
+    { // Constantly send message, gotta figure out what zach wants us to send
 
-      // cgripper_Turret_Set_Max_Speed(message);
-//      cgripper_Turret_Set_Max_Speed(KTeamGripper,0x14);
+
+
       cgripper_Gripper_Set_Position(message);
       printf("set gripper pos to: %hu \n", message);
       sleep(1);
