@@ -3,10 +3,17 @@
 void I2C_M::init() {
     Wire.begin();
     // I2C Memory addresses
-    uint32_t I2C_Con = I2C0_BASE | 0x00; // I2C Control
-    uint32_t I2C_En = I2C0_BASE | 0x6c; // I2C Enable
+    // uint32_t I2C_Con = I2C0_BASE | 0x00; // I2C Control
+    // uint32_t I2C_En = I2C0_BASE | 0x6c; // I2C Enable
 
     Wire.begin(); // Begin wire communication
+    uint16_t SDApadOffset = (4 * 0x04) + 0x04;
+    uint16_t SCLpadOffset = (5 * 0x04) + 0x04;
+    writeReg(PADS_BANK0_BASE + SDApadOffset, 1, 3, 1); // Enable pull-up
+    writeReg(PADS_BANK0_BASE + SCLpadOffset, 1, 3, 1); // Enable pull-up
+
+    writeReg(PADS_BANK0_BASE + SDApadOffset, 1, 2, 0); // Disable pull-down
+    writeReg(PADS_BANK0_BASE + SCLpadOffset, 1, 2, 0); // Disable pull-down
     // byte SDA_offset = 0x20; // offset fo GPIO4
     // byte SCL_offset = 0x28; // offset for GPIO5
     // writeReg(I2C_En, 1, 0, 0x0); // Disable I2C

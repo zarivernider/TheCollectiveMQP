@@ -12,6 +12,7 @@
 ToDo List:
   - Set interrupt priorities
   - Set SPI class to reset proper pinouts
+  - Manipulate brightness of the LEDs
   - 
 
 
@@ -23,8 +24,8 @@ ToDo List:
 #define LEDsPerReg 8 // Number of LEDs in one register
 #define bitsPerLED 2
 #define I2C_Sec_Address 0x24 // Address of the I2C module 
-#define openGripperAngle 90 // degrees
-#define closeGripperAngle 0 // degrees
+// #define openGripperAngle 90 // degrees
+// #define closeGripperAngle 0 // degrees
 #define BACKDRIVE 0
 #define POSITION 1
 #define SPEED 2
@@ -63,8 +64,8 @@ uint16_t turretState = 0; //0x08: State representation of the turret. Only botto
                           // 2: Set speed
                           // 3: Hold position
 
-uint16_t isGripper = 1; //0x09: Boolean for gripper being open or closed. 1 is Open
-uint16_t gripperPresets = 0x0091; // 0x0A: set open and close position for gripper in degrees. Upper byte is open
+uint16_t isGripper = 0; //0x09: Boolean for gripper being open or closed. 1 is Open
+uint16_t gripperPresets = 0x5A00; // 0x0A: set open and close position for gripper in degrees. Upper byte is open
 
 uint16_t forceSensorParallel = 0; //0xB: Force sensor reading of the parallel sensor
 uint16_t forceSensorPerpendicular = 0; // 0x0C: Force sensor reading of the perpendicular sensor
@@ -138,7 +139,7 @@ void setup() {
 
   // Initialize classes 
   stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
-  // gripper.attach();
+  gripper.attach();
   motor.init();
 
   // extLED.init();
@@ -151,18 +152,18 @@ void setup() {
 
 void loop() {
 
-  // // Execute gripper
-  // uint8_t gripperPos = isGripper & 0x1 ? (gripperPresets >> 8) : gripperPresets & 0xFF;
-  // gripper.setServo(gripperPos);
+  // Execute gripper
+  uint8_t gripperPos = isGripper & 0x1 ? (gripperPresets >> 8) : gripperPresets & 0xFF;
+  gripper.setServo(gripperPos);
 
   // Update LEDs
   if(LEDflush & 0x1) {
-    for(uint8_t regNumb = 0; regNumb < numbLEDsRing / LEDsPerReg; regNumb++) { // Get the specific register
+    for(uint8_t regNumb = 0; regNumb < ceil((float)numbLEDsRing / LEDsPerReg); regNumb++) { // Get the specific register (ceil((float)numbLEDsRing / LEDsPerReg)
       for (uint8_t LEDNumb = 0; LEDNumb < LEDsPerReg; LEDNumb++) { // LED number in the register
         uint8_t LEDnumber = regNumb*LEDsPerReg + LEDNumb; // LED number globally
-        if(LEDnumber >= numbLEDsRing - 1) break; // Leave loop if last LED has been set
-        uint8_t getPreset = (LEDcolors[regNumb] >> LEDnumber) & 0xFF;
-        uint8_t presetIndex = getPreset * 2;
+        if(LEDnumber >= numbLEDsRing) break; // Leave loop if last LED has been set
+        uint8_t getPreset = (LEDcolors[regNumb] >> (LEDNumb*2) ) & 0x03; // Get the color of specific LED
+        uint8_t presetIndex = getPreset * 2; // Two registers per each preset
         uint8_t green = LEDcolorPresets[presetIndex] >> 8;
         uint8_t red = LEDcolorPresets[presetIndex];
         uint8_t blue = LEDcolorPresets[presetIndex + 1];
@@ -184,7 +185,6 @@ if(writeEEPROM & 0x1) {
   extLED.assertIO(false);
   writeEEPROM = 0x0;
 }
-
 switch (turretState)
 {
 case BACKDRIVE:
@@ -198,7 +198,7 @@ case SPEED:
     turretSpeed = abs(turretSpeed) > turretMaxSpeed ? turretMaxSpeed : turretSpeed;
     if(turretSpeed > 0) motor.setDirection(true);
     else motor.setDirection(false);
-    motor.setSpeed(turretSpeed);
+    motor.setFreq(turretSpeed);
     break;
 case STOP:
   motor.enable(true);
