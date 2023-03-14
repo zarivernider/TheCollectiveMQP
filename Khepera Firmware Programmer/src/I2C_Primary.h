@@ -44,7 +44,6 @@ class I2C_M {
 
         i2cBase = i2c;
     }
-    I2C_M() {};
     
     bool mailBox = false;
     // Functions
@@ -60,10 +59,6 @@ class I2C_M {
     void sdkInit();
     void sdkwriteData(uint8_t address, uint8_t reg, uint16_t data);
     uint16_t sdkreadData(uint8_t address, uint8_t reg, uint16_t *memData);
-
-    void sdkwriteArray(uint8_t dataArray[], uint8_t length, uint8_t address);
-
-    void sdkreadArray(uint8_t* returnArray, uint16_t reg, uint8_t length, uint8_t address);
 
 
 };

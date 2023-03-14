@@ -7,7 +7,7 @@
 #include "APA102_Custom.h"
 #include "I2C_Primary.h"
 #include <Wire.h>
-#include "EEPROM.h"
+
 /*
 ToDo List:
   - Set interrupt priorities
@@ -49,7 +49,6 @@ ToDo List:
 #define yforceADCchannel 0
 #define xforceADCchannel 2
 #define gripperPin 13
-#define writeProtectIO 20
 // I2C Register map
 uint16_t turretPosition = 0; // 0x00: Desired position
 uint16_t turretEncoder = 0; // 0x01: Actual position
@@ -96,11 +95,6 @@ I2C_P i2c_p;
 Servo gripper(gripperPin);
 Stepper motor(stepperPWMPin, stepperDirPin, stepperEnablePin, stepperS1Pin, stepperS2Pin, stepperUARTPin); 
 I2C_M i2cMain(I2C1SDAPin, I2C1SCLPin, i2c1);
-EEPROM eeprom(&i2cMain, writeProtectIO);
-//Test functions
-void testLED(); // Test the LEDs by setting the colors to alternate. Call in setup
-void testADC(); // Test both ADC's and print the return values. Call in loop.
-
 // ToDo: Stepper programmer. Sets SS pins and UART for controlling TMC
 
 
@@ -142,100 +136,38 @@ void setup() {
   i2c_p.arrMap[27] = &writeEEPROM;
 
 
-  // Initialize classes 
-  stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
-  gripper.attach();
-  motor.init();
 
+  // Initialize classes 
+  // stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
+  // gripper.attach();
+  motor.init();
+  motor.enable(false);
   // extLED.init();
   // absoluteEncoder.init();
-  adc.initMulti();
-  i2c_p.init(I2C_Sec_Address);
-  eeprom.init();
+  // adc.initMulti();
+  // i2c_p.init(I2C_Sec_Address);
+  // i2cMain.sdkInit();
   delay(1000);
-
-  turretPosition = 420;
-  eeprom.writeArray(i2c_p.arrMap, 28);
+ 
 }
 
 void loop() {
 
-  // Execute gripper
-  uint8_t gripperPos = isGripper & 0x1 ? (gripperPresets >> 8) : gripperPresets & 0xFF;
-  gripper.setServo(gripperPos);
+  // uint32_t setOTPmessage = 0x6 | (0x0 << 4) | (0xbd << 8);
+  // motor.writeAddress(regOTPaddress, setOTPmessage); // Set OTP to use internal memorys
 
-  // Update LEDs
-  if(LEDflush & 0x1) {
-    for(uint8_t regNumb = 0; regNumb < ceil((float)numbLEDsRing / LEDsPerReg); regNumb++) { // Get the specific register (ceil((float)numbLEDsRing / LEDsPerReg)
-      for (uint8_t LEDNumb = 0; LEDNumb < LEDsPerReg; LEDNumb++) { // LED number in the register
-        uint8_t LEDnumber = regNumb*LEDsPerReg + LEDNumb; // LED number globally
-        if(LEDnumber >= numbLEDsRing) break; // Leave loop if last LED has been set
-        uint8_t getPreset = (LEDcolors[regNumb] >> (LEDNumb*2) ) & 0x03; // Get the color of specific LED
-        uint8_t presetIndex = getPreset * 2; // Two registers per each preset
-        uint8_t green = LEDcolorPresets[presetIndex] >> 8;
-        uint8_t red = LEDcolorPresets[presetIndex];
-        uint8_t blue = LEDcolorPresets[presetIndex + 1];
-        stringLEDs[LEDnumber] = stringLEDs.MakeColor(red, green, blue);
-      }
-    }
-    stringLEDs.Show();
-    LEDflush = 0x0;
-  }
+  // delay(4000);
+// Read status 0x6F
+motor.readAddress(0x6F);
+delay(4000);
+// Read total status 0x00
+motor.readAddress(0x00);
+delay(4000);
+// Read inputs 0x06
+motor.readAddress(0x06);
+delay(4000);
 
-// // Set encoder position
-// turretEncoder = absoluteEncoder.getCtr();
-
-if(writeEEPROM & 0x1) {
-  // Make diagnostic LED bright
-  extLED.assertIO(true);
-  // ToDo: clear and write the EEPROM
-  // Make diagnostic LED low
-  extLED.assertIO(false);
-  writeEEPROM = 0x0;
-}
-switch (turretState)
-{
-case BACKDRIVE:
-  motor.enable(false);
-  break;
-case POSITION:
-  // ToDo: Write control loop
-  break;
-case SPEED:
-    motor.enable(true);
-    turretSpeed = abs(turretSpeed) > turretMaxSpeed ? turretMaxSpeed : turretSpeed;
-    if(turretSpeed > 0) motor.setDirection(true);
-    else motor.setDirection(false);
-    motor.setFreq(turretSpeed);
-    break;
-case STOP:
-  motor.enable(true);
-  motor.brakeStop();
-  break;
-}
-
-// ToDo: Add ADC calibration
-forceSensorParallel = adc.getADCMulti(0); // Not sure if proper ADC (ToDo)
-forceSensorPerpendicular =  adc.getADCMulti(2); // Not sure if proper ADC (ToDo)
-testADC();
-}
-
-void testLED() { 
-  LEDcolors[0] = 0x6DB6;
-  LEDcolors[1] = 0xDB6D;
-  LEDcolors[2] = 0xB6DB;
-  LEDcolors[3] = 0x6DB6;
-  LEDflush = 1;
-}
-
-void testADC() {
-  static uint32_t oldTime = 0;
-  if(millis() - oldTime > 1500) {
-    Serial.print("Parallel: ");
-    Serial.print(forceSensorParallel);
-    Serial.print("\t Perpendicular: ");
-    Serial.println(forceSensorPerpendicular);
-    oldTime = millis();
-  }
-
+// motor.enable(true);
+// motor.setFreq(1000);
+  
 }

@@ -113,15 +113,3 @@ uint16_t I2C_M::sdkreadData(uint8_t address, uint8_t reg, uint16_t *memData) {
 
     return numbRead;
 }
-
-void I2C_M::sdkwriteArray(uint8_t dataArray[], uint8_t length, uint8_t address) {
-    i2c_write_blocking(I2C_M::i2cBase, address, &dataArray[0], length, false);
-}
-
-void I2C_M::sdkreadArray(uint8_t* returnArray, uint16_t reg, uint8_t length, uint8_t address) {
-    uint8_t regSplit[2];
-    regSplit[0] = reg >> 8; // Assume MSB first? Datasheet is vague
-    regSplit[1] = reg & 0xFF; // LSB second
-    i2c_write_blocking(I2C_M::i2cBase, address, regSplit, 2, true);
-    i2c_read_blocking(I2C_M::i2cBase, address, returnArray, length, false);
-}
