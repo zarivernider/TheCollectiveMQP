@@ -26,7 +26,7 @@ class I2C_M {
     uint16_t SCLpadOffset = 0;
     uint32_t I2C_BASE_OFFSET = 0;
     uint32_t maxPollvalue = 12500; // Clock counts for 10x i2c signal. (0.1 mS)
-    #define baudRate 1000000
+    #define baudRate 100000
   
   public:    
     // Constructor for reg
@@ -61,10 +61,10 @@ class I2C_M {
     void sdkwriteData(uint8_t address, uint8_t reg, uint16_t data);
     uint16_t sdkreadData(uint8_t address, uint8_t reg, uint16_t *memData);
 
-    void sdkwriteArray(uint8_t dataArray[], uint8_t length, uint8_t address);
-
+    void sdkwriteAddress(uint8_t i2cAddress, uint16_t memAddress, uint8_t data, uint8_t delaymS);
     void sdkreadArray(uint8_t* returnArray, uint16_t reg, uint8_t length, uint8_t address);
 
+  
 
 };
 

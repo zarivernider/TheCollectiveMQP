@@ -114,9 +114,24 @@ uint16_t I2C_M::sdkreadData(uint8_t address, uint8_t reg, uint16_t *memData) {
     return numbRead;
 }
 
-void I2C_M::sdkwriteArray(uint8_t dataArray[], uint8_t length, uint8_t address) {
-    i2c_write_blocking(I2C_M::i2cBase, address, &dataArray[0], length, false);
+// // Potentially make a write that has an input array as mem address
+// void I2C_M::sdkreadData16(uint8_t address, uint8_t reg, uint16_t *memData) {
+//     uint8_t returnInt[2];
+//     // i2c_read_blocking_until(i2c_inst_t *i2c, uint8_t addr, uint8_t *dst, size_t len, bool nostop
+//     i2c_write_blocking(I2C_M::i2cBase, address, &reg, 1, true);
+//     uint16_t numbRead  = i2c_read_blocking(I2C_M::i2cBase, address, returnInt, 2, false);
+//     *memData =  (returnInt[1] << 8) + returnInt[0];
+// }
+
+void I2C_M::sdkwriteAddress(uint8_t i2cAddress, uint16_t memAddress, uint8_t data, uint8_t delaymS)  {
+    uint8_t sendArray[3];
+    sendArray[0] = memAddress >> 8; // MSB of address first
+    sendArray[1] = memAddress & 0xFF; // LSB of address second
+    sendArray[2] = data; // Data last
+    i2c_write_blocking(I2C_M::i2cBase, i2cAddress, sendArray, 3, false);
+    delay(delaymS);
 }
+
 
 void I2C_M::sdkreadArray(uint8_t* returnArray, uint16_t reg, uint8_t length, uint8_t address) {
     uint8_t regSplit[2];
@@ -125,3 +140,4 @@ void I2C_M::sdkreadArray(uint8_t* returnArray, uint16_t reg, uint8_t length, uin
     i2c_write_blocking(I2C_M::i2cBase, address, regSplit, 2, true);
     i2c_read_blocking(I2C_M::i2cBase, address, returnArray, length, false);
 }
+

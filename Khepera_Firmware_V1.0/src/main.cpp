@@ -51,7 +51,7 @@ ToDo List:
 #define gripperPin 13
 #define writeProtectIO 20
 // I2C Register map
-uint16_t turretPosition = 0; // 0x00: Desired position
+uint16_t turretPosition = 0xFF00; // 0x00: Desired position
 uint16_t turretEncoder = 0; // 0x01: Actual position
 uint16_t turretSpeed = 0; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
 uint16_t turretMaxSpeed = 0; // 0x03: Max speed the turret can move
@@ -74,7 +74,7 @@ uint16_t forceSensorPerpendicular = 0; // 0x0C: Force sensor reading of the perp
 uint16_t LEDbrightness = 0; // 0x0D: set LED brightness
 uint16_t LEDcolorPresets[8] =  {0x0, // 0x0E: set preset color 0 red and green (8 bits) green is upper byte
                                 0x0, // 0x0F: set preset color 0 blue (8 bits) lower byte
-                                0x00FF, // 0x10: set preset color 1 red and green (8 bits) green is upper byte
+                                0x00FF, // 0x10: set preset color 1 red and green (8 bits) green is upper byte // CHANGED FROM 0x00FF
                                 0x0, // 0x11: set preset color 1 blue (8 bits) lower byte
                                 0xFF00, // 0x12: set preset color 2 red and green (8 bits) green is upper byte
                                 0x0, // 0x13: set preset color 2 blue (8 bits) lower byte
@@ -100,7 +100,8 @@ EEPROM eeprom(&i2cMain, writeProtectIO);
 //Test functions
 void testLED(); // Test the LEDs by setting the colors to alternate. Call in setup
 void testADC(); // Test both ADC's and print the return values. Call in loop.
-
+void testPrint(); // Random function. Modify whenever to print whatever is desired
+void globalStop(); // Stop everything
 // ToDo: Stepper programmer. Sets SS pins and UART for controlling TMC
 
 
@@ -146,16 +147,17 @@ void setup() {
   stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
   gripper.attach();
   motor.init();
-
+  extLED.init();
   // extLED.init();
   // absoluteEncoder.init();
   adc.initMulti();
   i2c_p.init(I2C_Sec_Address);
   eeprom.init();
+  extLED.assertIO(true);
+  eeprom.readArray(i2c_p.arrMap, numbReg);
+  // turretPosition = 420;
   delay(1000);
-
-  turretPosition = 420;
-  eeprom.writeArray(i2c_p.arrMap, 28);
+  extLED.assertIO(false);
 }
 
 void loop() {
@@ -188,7 +190,9 @@ void loop() {
 if(writeEEPROM & 0x1) {
   // Make diagnostic LED bright
   extLED.assertIO(true);
-  // ToDo: clear and write the EEPROM
+  globalStop(); // Disable settings so that the turret does not move on startup
+  // Write the EEPROM
+  eeprom.writeArray(i2c_p.arrMap, numbReg);
   // Make diagnostic LED low
   extLED.assertIO(false);
   writeEEPROM = 0x0;
@@ -202,14 +206,14 @@ case POSITION:
   // ToDo: Write control loop
   break;
 case SPEED:
-    motor.enable(true);
+    // motor.enable(true);
     turretSpeed = abs(turretSpeed) > turretMaxSpeed ? turretMaxSpeed : turretSpeed;
     if(turretSpeed > 0) motor.setDirection(true);
     else motor.setDirection(false);
     motor.setFreq(turretSpeed);
     break;
 case STOP:
-  motor.enable(true);
+  // motor.enable(true);
   motor.brakeStop();
   break;
 }
@@ -217,7 +221,8 @@ case STOP:
 // ToDo: Add ADC calibration
 forceSensorParallel = adc.getADCMulti(0); // Not sure if proper ADC (ToDo)
 forceSensorPerpendicular =  adc.getADCMulti(2); // Not sure if proper ADC (ToDo)
-testADC();
+// testADC();
+testPrint();
 }
 
 void testLED() { 
@@ -237,5 +242,20 @@ void testADC() {
     Serial.println(forceSensorPerpendicular);
     oldTime = millis();
   }
+
+}
+
+void testPrint() {
+  static uint32_t oldTime = 0;
+  if(millis() - oldTime > 4000) {
+    Serial.println(*i2c_p.arrMap[0x0], HEX);
+    // eeprom.read(0x0, 24);
+    oldTime = millis();
+  }
+}
+
+void globalStop() {
+  turretState = 0; // Turn off turret
+  isGripper = 1; // Open Gripper
 
 }

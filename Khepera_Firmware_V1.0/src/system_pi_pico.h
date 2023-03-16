@@ -18,7 +18,7 @@ void writeReg(uint32_t addr, uint8_t numbBits, uint8_t offset, uint32_t data);
 #define DMA_INTS1 (DMA_BASE | 0x41c)
 #define DREQ_PWM_WRAP_BASE 24
 #define DMA_READ_TO_READ_OFFSET 0x40
-#define DREQ_ADC 36
+// #define DREQ_ADCs 36 // No longer used
 #define IO_BANK_PROC0_INTE1 (IO_BANK0_BASE | 0x104)
 #define IO_BANK_INTR1 (IO_BANK0_BASE | 0xf4)
 #endif
