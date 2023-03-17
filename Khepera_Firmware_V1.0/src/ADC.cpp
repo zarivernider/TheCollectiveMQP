@@ -135,6 +135,11 @@ float ADC::getVolt_float_Single(bool isCalib) {
 
 void ADC::calibrateMulti(uint16_t numbValues) {
     uint32_t totalSum[numbADCchannels];
+    // Gather values to allow the system to initialize
+    for(int iter = 0; iter < numbValues / 4; iter++) {
+        for(int iter = 0; iter < numbADCchannels; iter++);
+        delay(numbADCchannels);
+    }
     // Clear all values
     for(int iter = 0; iter < numbADCchannels; iter++) totalSum[iter] = 0;
     for(int iter = 0; iter < numbValues; iter++) {
@@ -147,7 +152,8 @@ void ADC::calibrateMulti(uint16_t numbValues) {
 uint16_t ADC::getADCMulti(uint8_t channel) { 
     // uint8_t ovfChannel = channel < numbADCchannels ? channel : numbADCchannels - 1; // prevent index out of bounds error
     uint16_t rawADC = ADC::getrawADCMulti(channel);
-    return rawADC < ADC::calibMulti[channel] ? 0 : rawADC - ADC::calibMulti[channel];
+    uint16_t rawGND = ADC::getrawADCMulti(GNDchannel);
+    return rawADC - ADC::calibMulti[channel] + midRange - rawGND + ADC::calibMulti[GNDchannel];
 }
 
 uint16_t ADC::getrawADCMulti(uint8_t channel) { 

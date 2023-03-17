@@ -32,8 +32,8 @@ public:
   void Init(void); // Initialize the Pico for transmission
   int CountPixels(void) {return length;} // Return the amount of pixels in the transmission line
   pixel MakeColor(uint8_t red, uint8_t green, uint8_t blue); // Format RGB colors to proper data type
-  void Show(void); // Upload all values from internal buffer to the light strips
-  void showUniform(uint8_t red, uint8_t green, uint8_t blue); // Set all LEDs the same color
+  void Show(uint8_t brightness); // Upload all values from internal buffer to the light strips
+  void showUniform(uint8_t red, uint8_t green, uint8_t blue, uint8_t brightness); // Set all LEDs the same color
   pixel& operator [] (int i) // Make the class index-able
   {
     return pixels[i];

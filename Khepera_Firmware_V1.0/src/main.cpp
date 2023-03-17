@@ -24,6 +24,8 @@ ToDo List:
 #define LEDsPerReg 8 // Number of LEDs in one register
 #define bitsPerLED 2
 #define I2C_Sec_Address 0x24 // Address of the I2C module 
+#define maxEncoder 46002
+#define minEncoder 1312
 // #define openGripperAngle 90 // degrees
 // #define closeGripperAngle 0 // degrees
 #define BACKDRIVE 0
@@ -51,8 +53,8 @@ ToDo List:
 #define gripperPin 13
 #define writeProtectIO 20
 // I2C Register map
-uint16_t turretPosition = 0xFF00; // 0x00: Desired position
-uint16_t turretEncoder = 0; // 0x01: Actual position
+uint16_t turretDesPosition = 0x0000; // 0x00: Desired position
+uint16_t turretEncoder = 0; // 0x01: Actual position. Raw output from the AS5600
 uint16_t turretSpeed = 0; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
 uint16_t turretMaxSpeed = 0; // 0x03: Max speed the turret can move
 uint16_t turretMaxTolerance = 0; // 0x04: Tolerance of PID function
@@ -71,7 +73,7 @@ uint16_t gripperPresets = 0x5A00; // 0x0A: set open and close position for gripp
 uint16_t forceSensorParallel = 0; //0xB: Force sensor reading of the parallel sensor
 uint16_t forceSensorPerpendicular = 0; // 0x0C: Force sensor reading of the perpendicular sensor
 
-uint16_t LEDbrightness = 0; // 0x0D: set LED brightness
+uint16_t LEDbrightness = 0x1F; // 0x0D: set LED brightness
 uint16_t LEDcolorPresets[8] =  {0x0, // 0x0E: set preset color 0 red and green (8 bits) green is upper byte
                                 0x0, // 0x0F: set preset color 0 blue (8 bits) lower byte
                                 0x00FF, // 0x10: set preset color 1 red and green (8 bits) green is upper byte // CHANGED FROM 0x00FF
@@ -87,6 +89,10 @@ uint16_t LEDcolors[4] = {0,  //0x16: set LEDs to preset colors. 2 bits per LED. 
 uint16_t LEDflush = 0; // 0x1A: Boolean for LED being set. 1 is set them. Auto rewrites to 0
 
 uint16_t writeEEPROM = 0x0; // 0x1B: Boolean for EEPROM being written. 1 is write it. Auto rewrites to 0
+
+uint16_t turretEncoderTrim = 28912; // 0x1C Current offset for the encoder
+uint16_t writeturretTrim = 0x0; // 0x1D Boolean for encoder orientation to be set. 1 captures current orientation. Auto rewrites to 0
+uint16_t turretPosition = 0x0; // 0x1E encoder position translated from 0 - maxEnc - minEnc. Convert by multiplying with 360 / 44690
 // Class initialization
 APA102 stringLEDs(numbLEDsRing);
 ADC adc(0b111, 0); // Activate all channels and DMA channel 0
@@ -113,7 +119,7 @@ void globalStop(); // Stop everything
 uint16_t forceSensor = 20;
 void setup() {
   // Initialize variables memory address to I2C registers
-  i2c_p.arrMap[0] = &turretPosition;
+  i2c_p.arrMap[0] = &turretDesPosition;
   i2c_p.arrMap[1] = &turretEncoder;
   i2c_p.arrMap[2] = &turretSpeed;
   i2c_p.arrMap[3] = &turretMaxSpeed;
@@ -148,14 +154,13 @@ void setup() {
   gripper.attach();
   motor.init();
   extLED.init();
-  // extLED.init();
-  // absoluteEncoder.init();
+  absoluteEncoder.init();
   adc.initMulti();
   i2c_p.init(I2C_Sec_Address);
   eeprom.init();
   extLED.assertIO(true);
-  eeprom.readArray(i2c_p.arrMap, numbReg);
-  // turretPosition = 420;
+  // eeprom.readArray(i2c_p.arrMap, numbReg);
+  adc.calibrateMulti(400);
   delay(1000);
   extLED.assertIO(false);
 }
@@ -180,12 +185,20 @@ void loop() {
         stringLEDs[LEDnumber] = stringLEDs.MakeColor(red, green, blue);
       }
     }
-    stringLEDs.Show();
+    stringLEDs.Show(LEDbrightness & 0x1F);
     LEDflush = 0x0;
   }
 
-// // Set encoder position
-// turretEncoder = absoluteEncoder.getCtr();
+// Set encoder position
+turretEncoder = constrain(absoluteEncoder.getCtr(), minEncoder, maxEncoder);
+uint16_t tempTrim = turretEncoderTrim - minEncoder;
+uint32_t transPosition = turretEncoder > turretEncoderTrim ? turretEncoder : turretEncoder - minEncoder + maxEncoder;
+turretPosition = transPosition - turretEncoderTrim;
+turretPosition = map(transPosition, turretEncoderTrim, maxEncoder + tempTrim, 0, maxEncoder - minEncoder); //Uncomment for position in degrees
+if(writeturretTrim & 0x1) {
+  turretEncoderTrim = turretEncoder;
+  writeturretTrim = 0x0;
+}
 
 if(writeEEPROM & 0x1) {
   // Make diagnostic LED bright
@@ -221,8 +234,8 @@ case STOP:
 // ToDo: Add ADC calibration
 forceSensorParallel = adc.getADCMulti(0); // Not sure if proper ADC (ToDo)
 forceSensorPerpendicular =  adc.getADCMulti(2); // Not sure if proper ADC (ToDo)
-// testADC();
-testPrint();
+testADC();
+// testPrint();
 }
 
 void testLED() { 
@@ -236,7 +249,9 @@ void testLED() {
 void testADC() {
   static uint32_t oldTime = 0;
   if(millis() - oldTime > 1500) {
-    Serial.print("Parallel: ");
+    Serial.print("Zero: ");
+    Serial.print(adc.getrawADCMulti(1));
+    Serial.print("\t Parallel: ");
     Serial.print(forceSensorParallel);
     Serial.print("\t Perpendicular: ");
     Serial.println(forceSensorPerpendicular);
@@ -247,9 +262,24 @@ void testADC() {
 
 void testPrint() {
   static uint32_t oldTime = 0;
-  if(millis() - oldTime > 4000) {
-    Serial.println(*i2c_p.arrMap[0x0], HEX);
+  if(millis() - oldTime > 1500) {
+    // Serial.println(*i2c_p.arrMap[0x0], HEX);
     // eeprom.read(0x0, 24);
+    // Serial.println(turretEncoder);
+    // Serial.print("Encoder Trim: ");
+    // Serial.print(turretEncoderTrim);
+    // Serial.print("\t Angle: ");
+    // Serial.print(((float)turretPosition / 44690) * 360);
+    // Serial.print("\t RAW Encoder Position: ");
+    // Serial.println(turretEncoder);
+
+    // static int iteration = 0;
+    // // LEDbrightness = iteration;
+    // iteration = iteration == 0x1F ? 0 : iteration + 1;
+    // LEDbrightness = iteration;
+    // Serial.println(LEDbrightness);
+    // LEDflush = 1;
+
     oldTime = millis();
   }
 }
@@ -259,3 +289,22 @@ void globalStop() {
   isGripper = 1; // Open Gripper
 
 }
+
+
+// CODE FOR MIN / MAX Encoder
+// static uint16_t maxEnc = 10000; // 45395
+// static uint16_t minEnc = 10000; 
+// if(turretEncoder > maxEnc) {
+//   maxEnc = turretEncoder;
+//   Serial.print("Max: ");
+//   Serial.println(maxEnc);
+//   Serial.print("Min: ");
+//   Serial.println(minEnc);
+// }
+// else if(turretEncoder < minEnc) {
+//   minEnc = turretEncoder;
+//   Serial.print("Max: ");
+//   Serial.println(maxEnc);
+//   Serial.print("Min: ");
+//   Serial.println(minEnc);
+// }

@@ -15,6 +15,8 @@ class ADC
 {
     private:
         #define numbADCchannels 3
+        #define midRange 2048 // Midrange of the ADC calculation
+        #define GNDchannel 1 // ADC channel that is connected to ground
         uint8_t ain_sel;
         
         

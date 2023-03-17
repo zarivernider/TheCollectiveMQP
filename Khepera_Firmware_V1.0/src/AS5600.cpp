@@ -23,10 +23,10 @@ void AS5600::init() {
 
     // Set CSR Div Mode to 1. Enables input and free running
     writeReg(PWM_BASE | (0x00 + pwmOffset), 2, 4, 1); // CHx_CSR 
-    // Set DIV as 16. fsys -> 7,812,500 Hz 
-    writeReg(PWM_BASE | (0x04 + pwmOffset), 8, 4, 16); // CHx_DIV. 
-    // Set top -> 16,982. fpwm -> ~460 Hz
-    writeReg(PWM_BASE | (0x10 + pwmOffset), 16, 0, 16982); // CHx_TOP
+    // Set DIV as 6. fsys -> 20.83 MHz 
+    writeReg(PWM_BASE | (0x04 + pwmOffset), 8, 4, 6); // CHx_DIV. 
+    // Set top -> max to never roll over. max time is ~3mS
+    writeReg(PWM_BASE | (0x10 + pwmOffset), 16, 0, 0xFFFF); // CHx_TOP
     // Enable PWM
     writeReg(PWM_BASE | (0x00 + pwmOffset), 1, 0, 1); // CHx_CSR off enable on
     // Enable interrupt

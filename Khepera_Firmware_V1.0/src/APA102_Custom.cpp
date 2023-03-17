@@ -15,7 +15,7 @@ void APA102::Init(void)
 
     // Zero all pixels
     for(uint16_t i = 0; i < length; i++) pixels[i] = MakeColor(0, 0, 0); // Clear color of all LEDs
-    Show(); //should clear all
+    Show(0x1F); //should clear all
   }
   APA102::pixel APA102::MakeColor(uint8_t red, uint8_t green, uint8_t blue) {
     pixel out; // Create a blank data type
@@ -25,7 +25,7 @@ void APA102::Init(void)
     return out;
   }
 
-  void APA102::Show(void)
+  void APA102::Show(uint8_t brightness)
   {
     // Begin transmission with 8 Meg clock
     SPI.beginTransaction(SPISettings(8000000ul, MSBFIRST, SPI_MODE0));
@@ -39,7 +39,7 @@ void APA102::Init(void)
     // Set pixel colors based on data stored in array
     for(uint16_t i = 0; i < length; i++)
     {
-        SPI.transfer(0xFF);
+        SPI.transfer(brightness | 0xE0);
         SPI.transfer(pixels[i].b);
         SPI.transfer(pixels[i].g);
         SPI.transfer(pixels[i].r);
@@ -53,7 +53,7 @@ void APA102::Init(void)
     SPI.endTransaction();
   }
 
-   void APA102::showUniform(uint8_t red, uint8_t green, uint8_t blue)
+   void APA102::showUniform(uint8_t red, uint8_t green, uint8_t blue, uint8_t brightness)
   {
     // Begin transmission with 8 Meg clock
     SPI.beginTransaction(SPISettings(8000000ul, MSBFIRST, SPI_MODE0));

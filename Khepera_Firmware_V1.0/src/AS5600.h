@@ -29,10 +29,6 @@ class AS5600
         }
         void init();
         uint16_t getCtr();
-
-
-
-
 };
 
 
