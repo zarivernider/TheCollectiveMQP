@@ -63,3 +63,7 @@ User root
 ```
 ### SSH into a robot:
 `$ ssh khepera05`
+
+### Compile a program for the robot:
+*You need to move the file you are compiling and the files necessary for inclusion into the template directory you use for libkhepera*
+
