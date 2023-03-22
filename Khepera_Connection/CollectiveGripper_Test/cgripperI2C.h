@@ -20,9 +20,9 @@
  */
 
 /*--------------------------------------------------------------------
- *	Turret Register Definitions
+ *	Turret Register Definitions (most are wrong unless otherwise specified)
  */
-#define TURRET_POSITION 		0x31
+#define TURRET_POSITION 		0x1E // THIS IS CORRECT
 #define TURRET_SPEED 			0x32
 #define TURRET_ORDER 			0x33 // Register to send orders over
 #define TURRET_MAX_SPEED		0x34
@@ -38,8 +38,8 @@
  *	Force Sensor Register Definitions
  *	Multiple are included as I have no idea if we will use them ever
  */
-#define FORCE_SENSOR_FORCE		0x39
-//#define FORCE_SENSOR2_FORCE		0x3A
+#define FORCE_SENSOR_PARALLEL		0xB // THIS IS CORRECT
+#define FORCE_SENSOR_PERPENDICULAR	0xC // THIS IS CORRECT
 //#define FORCE_SENSOR3_FORCE		0x3B
 
 /*--------------------------------------------------------------------
@@ -47,7 +47,7 @@
  *	Unsure if we would ever want to know what we are showing on LED,
  *	or just send orders
  */
-#define LED_CONFIG				0x3D
+#define LED_CONFIG				0x16
 
 /*--------------------------------------------------------------------
  *	Function Definitions
@@ -77,5 +77,7 @@ extern unsigned short cgripper_ForceSensor_Get_Force();
 /* LED Functions */
 extern unsigned short cgripper_LEDRing_Get_Config();
 extern void cgripper_LEDRing_Set_Status( unsigned short Config );
+void testLED();
+void rotateTurret();
 
 #endif /*	cgripperI2C	*/

@@ -76,11 +76,15 @@ CFLAGS 	= -O2
 # for debugging
 #CFLAGS 	= -g
 
-TARGET	= demo
+TARGET	= demo new_demo
 
 .PHONY: all clean depend
 
 demo: demo.o
+	@echo "Building $@"
+	$(CC) -o $@ $? $(LIBS) $(CFLAGS)
+
+new_demo: new_demo.o
 	@echo "Building $@"
 	$(CC) -o $@ $? $(LIBS) $(CFLAGS)
 	
