@@ -58,8 +58,14 @@ int main( int arc, char *argv[])
 
     unsigned short message = 13;
 
-    while (1)
-    { // Constantly send message
+    set_turret_zero();
+    sleep(1);
+    set_EEPROM();
+    sleep(1);
+    printf("done setting zero \n");
+
+    // while (1)
+    // { // Constantly send message
 
       // cgripper_Turret_Set_Max_Speed(message);
 //      cgripper_Turret_Set_Max_Speed(KTeamGripper,0x14);
@@ -69,25 +75,27 @@ int main( int arc, char *argv[])
     //   unsigned short pos = cgripper_Gripper_Get_Position();
     //   printf("read gripper pos as: %hu \n", pos);
     //   sleep(1);
-        unsigned short pos = cgripper_Turret_Get_Position(); // is weird
-        printf("read turret position as: %hu \n", pos);
+        // unsigned short pos = cgripper_Turret_Get_Position(); // is weird
+        // printf("read turret position as: %hu \n", pos);
         // unsigned short degpos = pos*360/44690;
         // printf("read turret deg position as: %hu \n", degpos);
-        sleep(2);
+        sleep(1);
         testLED(); // is good
         printf("done testing LEDs \n");
-        sleep(2);
-        unsigned short paraForce = cgripper_ForceSensor_Get__Parallel_Force(); // probably shouldn't be 0
-        printf("read parallel force sensor as: %hu \n", paraForce);
-        sleep(2);
-        unsigned short perpForce = cgripper_ForceSensor_Get__Perpendicular_Force(); // is good
-        printf("read perpendicular force sensor as: %hu \n", perpForce);
-        sleep(2);
+        // sleep(2);
+        // unsigned short paraForce = cgripper_ForceSensor_Get__Parallel_Force(); // probably shouldn't be 0
+        // printf("read parallel force sensor as: %hu \n", paraForce);
+        // sleep(2);
+        // unsigned short perpForce = cgripper_ForceSensor_Get__Perpendicular_Force(); // is good
+        // printf("read perpendicular force sensor as: %hu \n", perpForce);
+        // sleep(2);
         rotateTurret();
         printf("done rotating turret \n");
-        sleep(8);
-        
-    }
+        sleep(4);
+        stop();
+        // sleep(8);
+
+    // }
 
     error_Log("Exiting...");
 	}

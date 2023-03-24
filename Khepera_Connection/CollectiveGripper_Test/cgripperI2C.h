@@ -23,6 +23,7 @@
  *	Turret Register Definitions (most are wrong unless otherwise specified)
  */
 #define TURRET_POSITION 		0x1E // THIS IS CORRECT
+#define TURRET_ZERO             0x1D // CORRECT
 #define TURRET_SPEED 			0x32
 #define TURRET_ORDER 			0x33 // Register to send orders over
 #define TURRET_MAX_SPEED		0x34
@@ -48,6 +49,8 @@
  *	or just send orders
  */
 #define LED_CONFIG				0x16
+
+#define EEPROM                  0x1B // CORRECT
 
 /*--------------------------------------------------------------------
  *	Function Definitions
@@ -79,5 +82,8 @@ extern unsigned short cgripper_LEDRing_Get_Config();
 extern void cgripper_LEDRing_Set_Status( unsigned short Config );
 void testLED();
 void rotateTurret();
+void set_turret_zero();
+void set_EEPROM();
+void stop();
 
 #endif /*	cgripperI2C	*/

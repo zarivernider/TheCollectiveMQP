@@ -42,9 +42,9 @@ int close_gripper(void){
 
 unsigned short cgripper_Turret_Get_Position(){
 	unsigned short Position;
-	status = i2c_read16(&i2c,addr,0x1,&Position);
+	status = i2c_read16(&i2c,addr,TURRET_POSITION,&Position);
 	unsigned short DegPosition = Position*360/44690;
-	return Position;
+	return DegPosition;
 }
 unsigned short cgripper_Turret_Get_Speed(){
 	unsigned short Speed;
@@ -113,16 +113,22 @@ void cgripper_LEDRing_Set_Status( unsigned short Config){
 }
 
 void testLED() {
-  i2c_write16(&i2c, addr, 0x16, 0x6DB6);
-  sleep(1);
-  i2c_write16(&i2c, addr, 0x17, 0xDB6D);
-  sleep(1);
-  i2c_write16(&i2c, addr, 0x18, 0xB6DB);
-  sleep(1);
-  i2c_write16(&i2c, addr, 0x19, 0x6DB6);
-  sleep(1);
-  i2c_write16(&i2c, addr, 0x1A, 0x0001);
-  sleep(1);
+	i2c_write16(&i2c, addr, 0x16, 0x6DB6);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x17, 0xDB6D);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x18, 0xB6DB);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x19, 0x6DB6);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x1A, 0x0001);
+	sleep(1);
+	int i=0;
+	for(i=0; i<32; i++){
+		i2c_write16(&i2c, addr, 0xD, i);
+		i2c_write16(&i2c, addr, 0x1A, 0x0001);
+		usleep(500000);
+	}
 }
 
 void rotateTurret(){
@@ -136,4 +142,30 @@ void rotateTurret(){
 	// stop turning
 	// i2c_write16(&i2c, addr, 0x8, 0);
 	// sleep(1);
+}
+
+void set_EEPROM(){
+	i2c_write16(&i2c, addr, EEPROM, 1);
+}
+
+void set_turret_zero(){
+	i2c_write16(&i2c, addr, TURRET_ZERO, 1);
+}
+
+void stop(){
+	// stop turning
+	i2c_write16(&i2c, addr, 0x8, 0);
+	sleep(1);
+
+	// turn off LEDs
+	i2c_write16(&i2c, addr, 0x16, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x17, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x18, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x19, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x1A, 0x001);
+	sleep(1);
 }
