@@ -103,6 +103,7 @@ void Stepper::setFreq(int16_t freq) { // TEST:
     // }
 }
 void Stepper::enable(bool isEnabled) {
+    if(isEnabled) writeReg(IO_BANK0_BASE | (0x04 + Stepper::pwmioOffset), 2, 8, 0); // Pin output -> 0 = func select, 0 = drive output funtion select
     enGPIO.assertIO(!isEnabled);
 }
 

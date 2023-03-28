@@ -27,8 +27,9 @@ static inline void i2cHandle() {
     //     i2c_p.mailBox = true;
     // }
     else if(Tempstatus & 0x20) {
+        if(i2c0->hw->rxflr) i2c_p.globAddr = i2c0->hw->data_cmd & 0xFF;
         uint16_t* valRead = i2c_p.arrMap[i2c_p.globAddr]; // Point to the specific memory address of the intended variable
-        i2c0->hw->data_cmd = (byte)(*valRead & 0x00FF); // send LSB first
+        i2c0->hw->data_cmd =  (byte)(*valRead & 0x00FF); // send LSB first
         i2c0->hw->data_cmd = (byte)(*valRead >> 8); // send MSB second
         i2c0->hw->clr_rd_req;
     }
@@ -88,6 +89,10 @@ void I2C_P::init(uint8_t address) {
     irq_set_enabled(I2C0_IRQ, true); // enable interrupt
 // DAT (7:0) of CMD register hold data
 
+}
+
+void I2C_P::isInterrupt(bool isEnabled) {
+    irq_set_enabled(I2C0_IRQ, isEnabled); // enable interrupt
 }
 
 

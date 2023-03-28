@@ -4,16 +4,23 @@ I2C_M i2c_m;
 #define I2C_Sec_Address 0x24 // Address of the I2C module 
 
 void testStepper() { // Make the stepper turn
-  i2c_m.writeInt(2500, 0x03, I2C_Sec_Address); // Set max speed as 2500
-  delay(10);
-  i2c_m.writeInt(1000, 0x2, I2C_Sec_Address);
-  delay(10);
+  // i2c_m.writeInt(2500, 0x03, I2C_Sec_Address); // Set max speed as 2500
+  // delay(10);
+  // i2c_m.writeInt(1000, 0x2, I2C_Sec_Address);
+  // delay(10);
   i2c_m.writeInt(2, 0x08, I2C_Sec_Address);
   }
 
 void stopStepper() {
   i2c_m.writeInt(0, 0x08, I2C_Sec_Address);
   delay(10);
+}
+void readEnc() {
+  uint16_t perp = i2c_m.readInt(0x1E, I2C_Sec_Address);
+  Serial.print("Encoder: ");
+  Serial.print(perp);
+  Serial.print("\t");
+
 }
 void testALTLED() {
   i2c_m.writeInt(0x6DB6, 0x16, I2C_Sec_Address); // Set max speed as 2500
@@ -41,6 +48,19 @@ void testLED() {
 
 }
 
+void stopLED() {
+  i2c_m.writeInt(0, 0x16, I2C_Sec_Address); // Set max speed as 2500
+  delay(10);
+  i2c_m.writeInt(0, 0x17, I2C_Sec_Address);
+  delay(10);
+  i2c_m.writeInt(0, 0x18, I2C_Sec_Address);
+  delay(10);
+  i2c_m.writeInt(0, 0x19, I2C_Sec_Address); // Set max speed as 2500
+  delay(10);
+  i2c_m.writeInt(0X1, 0x1A, I2C_Sec_Address);
+  delay(10); 
+}
+
 void openGripper() {
   i2c_m.writeInt(0x1, 0x09, I2C_Sec_Address);
   delay(10);
@@ -54,7 +74,7 @@ void closeGripper() {
 
 void readForceSensor() {
   uint16_t parallel = i2c_m.readInt(0xB, I2C_Sec_Address);
-  delay(10);
+  // delay(10);
   uint16_t perp = i2c_m.readInt(0xC, I2C_Sec_Address);
   Serial.print("Parallel Force: ");
   Serial.print(parallel);
@@ -71,20 +91,25 @@ void setup() {
 }
 
 void loop() {
-  for(int i = 0; i < 3; i++) {
-  delay(2000);
-  closeGripper();
-  delay(2000);
-  openGripper();
-  }
+  // for(int i = 0; i < 3; i++) {
+  // delay(2000);
+  // closeGripper();
+  // delay(2000);
+  // openGripper();
+  // }
+  // Serial.println("Test Stepper");
   testStepper();
   delay(4000);
   stopStepper();
-  testALTLED();
   delay(4000);
 
+  testALTLED();
+  delay(4000);
+  
+  // readEnc();
+  stopLED();
   // readForceSensor();
-  // delay(500);
+  delay(4000);
 
 }
 
