@@ -58,11 +58,13 @@ int main( int arc, char *argv[])
 
     unsigned short message = 13;
 
-    set_turret_zero();
-    sleep(1);
-    set_EEPROM();
-    sleep(1);
-    printf("done setting zero \n");
+    // set_turret_zero();
+    // sleep(1);
+    // set_EEPROM();
+    // sleep(1);
+    // printf("done setting zero \n");
+    // setTurretSpeed(-500);
+    // printf("done setting speed");
 
     // while (1)
     // { // Constantly send message
@@ -72,16 +74,36 @@ int main( int arc, char *argv[])
     //   cgripper_Gripper_Set_Position(message);
     //   printf("set gripper pos to: %hu \n", message);
     //   sleep(1);
-    //   unsigned short pos = cgripper_Gripper_Get_Position();
-    //   printf("read gripper pos as: %hu \n", pos);
-    //   sleep(1);
-        // unsigned short pos = cgripper_Turret_Get_Position(); // is weird
+      // unsigned short pos = cgripper_Gripper_Get_Position();
+      // printf("read gripper pos as: %hu \n", pos);
+      // sleep(1);
+        setKi(0);
+        setKp(1331);
+        rotateTurret();
+        // setTurretPosition(11173); // 90deg
+        // sleep(10);
+        unsigned short pos = cgripper_Turret_Get_Position(); // is weird
+        printf("read turret position as: %hu \n", pos);
+        setTurretPosition(22345); // 180deg
+        sleep(10);
+        pos = cgripper_Turret_Get_Position(); // is weird
+        printf("read turret position as: %hu \n", pos);
+        // setTurretPosition(11173); // 90
+        // sleep(10);
+        // pos = cgripper_Turret_Get_Position(); // is weird
         // printf("read turret position as: %hu \n", pos);
+        setTurretPosition(0); // 0
+        sleep(10);
+        stop();
+        pos = cgripper_Turret_Get_Position(); // is weird
+        printf("read turret position as: %hu \n", pos);
+
+        
         // unsigned short degpos = pos*360/44690;
         // printf("read turret deg position as: %hu \n", degpos);
-        sleep(1);
-        testLED(); // is good
-        printf("done testing LEDs \n");
+        // sleep(1);
+        // testLED(); // is good
+        // printf("done testing LEDs \n");
         // sleep(2);
         // unsigned short paraForce = cgripper_ForceSensor_Get__Parallel_Force(); // probably shouldn't be 0
         // printf("read parallel force sensor as: %hu \n", paraForce);
@@ -89,10 +111,12 @@ int main( int arc, char *argv[])
         // unsigned short perpForce = cgripper_ForceSensor_Get__Perpendicular_Force(); // is good
         // printf("read perpendicular force sensor as: %hu \n", perpForce);
         // sleep(2);
-        rotateTurret();
-        printf("done rotating turret \n");
-        sleep(4);
-        stop();
+        
+        // rotateTurret();
+        // printf("done rotating turret \n");
+        // sleep(1);
+        // usleep(250000);
+        // stop();
         // sleep(8);
 
     // }

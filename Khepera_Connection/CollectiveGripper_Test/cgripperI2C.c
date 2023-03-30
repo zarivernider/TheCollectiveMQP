@@ -132,16 +132,28 @@ void testLED() {
 }
 
 void rotateTurret(){
-	// i2c_write16(&i2c, addr, 0x3, 1001); // reset the max speed bc zach accidentally flashed it w a maz of 0
-	// // 0x2 to decimal value of 1000 (SETTING SPEED)
-	// i2c_write16(&i2c, addr, 0x2, 1000);
+	
 	// sleep(1);
 	// 0x8 to 2
-	i2c_write16(&i2c, addr, 0x8, 0x2);
-	sleep(1);
+	i2c_write16(&i2c, addr, 0x8, 0x1); // 0x2
+	// sleep(1);
 	// stop turning
 	// i2c_write16(&i2c, addr, 0x8, 0);
 	// sleep(1);
+}
+
+void setTurretSpeed(int speed){
+	// i2c_write16(&i2c, addr, 0x3, 1001); // reset the max speed bc zach accidentally flashed it w a maz of 0
+	// 0x2 to decimal value of speed (SETTING SPEED)
+	i2c_write16(&i2c, addr, 0x2, speed);
+}
+
+void setKi(int Ki){
+	i2c_write16(&i2c, addr, 0x6, Ki);
+}
+
+void setKp(int Kp){
+	i2c_write16(&i2c, addr, 0x5, Kp);
 }
 
 void set_EEPROM(){
@@ -150,6 +162,10 @@ void set_EEPROM(){
 
 void set_turret_zero(){
 	i2c_write16(&i2c, addr, TURRET_ZERO, 1);
+}
+
+void setTurretPosition(int pos){
+	i2c_write16(&i2c, addr, 0x0, pos);
 }
 
 void stop(){

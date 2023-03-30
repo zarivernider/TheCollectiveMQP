@@ -85,5 +85,8 @@ void rotateTurret();
 void set_turret_zero();
 void set_EEPROM();
 void stop();
-
+void setTurretSpeed(int speed);
+void setTurretPosition(int pos);
+void setKi(int Ki);
+void setKp(int Kp);
 #endif /*	cgripperI2C	*/
