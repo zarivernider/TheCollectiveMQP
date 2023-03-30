@@ -1,0 +1,11 @@
+Line 82 kheperaiv_entity.cpp
+ - adding the turret entity, and how to set it to the right height (if we need that in the first place)
+Line 211 kheperaiv_entity.cpp Init
+ - Exact same as above
+Line 350 kheperaiv_entity.cpp UpdateComponents - update function for turret entity
+ - khepera does have an update function
+Line 20 kheperaiv_entity.h
+ - is this namespace implementation correct? we do call our turret CKhehperaIVTurretEntity
+Line 59 kheperaiv_turret_entity.cpp
+ - How does this update function work? Unsure how it even works in the first place, as there is no radius of the robot involved
+

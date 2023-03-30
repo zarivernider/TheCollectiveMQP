@@ -1,0 +1,11 @@
+How to compile ARGoS:
+Go into the directory argos3-kheperaiv/build_simulator, then run :
+$ cmake ../src
+And then
+$ make
+Note : if make has any errors; Fix them.
+Then to save this all as a robot for the simulator to use, run
+$ sudo make install
+
+
+To edit the program, go into argos3-kheperaiv/src/plugins/robots/kheperaiv to access the simulator and controller code.

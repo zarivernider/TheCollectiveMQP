@@ -1,0 +1,190 @@
+TODO : FOR buzz_controller_kheperaiv.cpp:
+
+Line 630 buzz_footbot_controller.cpp: Turret and gripper functions (In CBuzzControllerFootBot::RegisterFunctions())
+   if(m_pcGripper) {
+      /* BuzzGripperLock */
+      buzzvm_pushs(m_tBuzzVM, buzzvm_string_register(m_tBuzzVM, "gripper_lock", 1));
+      buzzvm_pushcc(m_tBuzzVM, buzzvm_function_register(m_tBuzzVM, BuzzGripperLock));
+      buzzvm_gstore(m_tBuzzVM);
+      /* BuzzGripperUnlock */
+      buzzvm_pushs(m_tBuzzVM, buzzvm_string_register(m_tBuzzVM, "gripper_unlock", 1));
+      buzzvm_pushcc(m_tBuzzVM, buzzvm_function_register(m_tBuzzVM, BuzzGripperUnlock));
+      buzzvm_gstore(m_tBuzzVM);
+   }
+   if(m_pcTurretA) {
+      /* BuzzTurretEnable */
+      buzzvm_pushs(m_tBuzzVM, buzzvm_string_register(m_tBuzzVM, "turret_enable", 1));
+      buzzvm_pushcc(m_tBuzzVM, buzzvm_function_register(m_tBuzzVM, BuzzTurretEnable));
+      buzzvm_gstore(m_tBuzzVM);
+      /* BuzzTurretDisable */
+      buzzvm_pushs(m_tBuzzVM, buzzvm_string_register(m_tBuzzVM, "turret_disable", 1));
+      buzzvm_pushcc(m_tBuzzVM, buzzvm_function_register(m_tBuzzVM, BuzzTurretDisable));
+      buzzvm_gstore(m_tBuzzVM);
+      /* BuzzTurretSet */
+      buzzvm_pushs(m_tBuzzVM, buzzvm_string_register(m_tBuzzVM, "turret_set", 1));
+      buzzvm_pushcc(m_tBuzzVM, buzzvm_function_register(m_tBuzzVM, BuzzTurretSet));
+      buzzvm_gstore(m_tBuzzVM);
+   } // This is right above the return m_tBuzzVM->state;
+   
+Line 217 gripper lock and gripper unlock function commands:
+static int BuzzGripperLock(buzzvm_t vm) {
+   /* Get pointer to the controller */
+   buzzvm_pushs(vm, buzzvm_string_register(vm, "controller", 1));
+   buzzvm_gload(vm);
+   /* Call function */
+   reinterpret_cast<CBuzzControllerFootBot*>(
+      buzzvm_stack_at(vm, 1)->u.value)->GripperLock();
+   return buzzvm_ret0(vm);
+}
+
+static int BuzzGripperUnlock(buzzvm_t vm) {
+   /* Get pointer to the controller */
+   buzzvm_pushs(vm, buzzvm_string_register(vm, "controller", 1));
+   buzzvm_gload(vm);
+   /* Call function */
+   reinterpret_cast<CBuzzControllerFootBot*>(
+      buzzvm_stack_at(vm, 1)->u.value)->GripperUnlock();
+   return buzzvm_ret0(vm);
+}
+// And also our BuzzTurretEnable and set line 240
+static int BuzzTurretEnable(buzzvm_t vm) {
+   /* Get pointer to the controller */
+   buzzvm_pushs(vm, buzzvm_string_register(vm, "controller", 1));
+   buzzvm_gload(vm);
+   /* Call function */
+   reinterpret_cast<CBuzzControllerFootBot*>(
+      buzzvm_stack_at(vm, 1)->u.value)->TurretEnable();
+   return buzzvm_ret0(vm);
+}
+
+static int BuzzTurretDisable(buzzvm_t vm) {
+   /* Get pointer to the controller */
+   buzzvm_pushs(vm, buzzvm_string_register(vm, "controller", 1));
+   buzzvm_gload(vm);
+   /* Call function */
+   reinterpret_cast<CBuzzControllerFootBot*>(
+      buzzvm_stack_at(vm, 1)->u.value)->TurretDisable();
+   return buzzvm_ret0(vm);
+}
+
+static int BuzzTurretSet(buzzvm_t vm) {
+   buzzvm_lnum_assert(vm, 1);
+   /* Push rotation */
+   buzzvm_lload(vm, 1);
+   buzzvm_type_assert(vm, 1, BUZZTYPE_FLOAT);
+   /* Get pointer to the controller */
+   buzzvm_pushs(vm, buzzvm_string_register(vm, "controller", 1));
+   buzzvm_gload(vm);
+   /* Call function */
+   reinterpret_cast<CBuzzControllerFootBot*>(
+      buzzvm_stack_at(vm, 1)->u.value)->TurretSet(
+	 buzzvm_stack_at(vm, 2)->f.value);
+   return buzzvm_ret0(vm);
+}
+// Comes right before CBuzzControllerFootBot::CBuzzControllerFootBot() :
+
+
+// Need to update our Init function based on this: (line 297)
+
+void CBuzzControllerFootBot::Init(TConfigurationNode& t_node) {
+   try {
+      /* Get pointers to devices */
+      try {
+         m_pcWheelsA = GetActuator<CCI_DifferentialSteeringActuator>("differential_steering");
+         m_sWheelTurningParams.Init(GetNode(t_node, "wheel_turning"));
+      }
+      catch(CARGoSException& ex) {}
+      try { m_pcLEDs = GetActuator<CCI_LEDsActuator>("leds"); }
+      catch(CARGoSException& ex) {}
+      try { m_pcGripper = GetActuator<CCI_FootBotGripperActuator>("footbot_gripper"); }
+      catch(CARGoSException& ex) {}
+      try { m_pcTurretA = GetActuator<CCI_FootBotTurretActuator>("footbot_turret"); }
+      catch(CARGoSException& ex) {}
+      try { m_pcProximity = GetSensor<CCI_FootBotProximitySensor>("footbot_proximity"); }
+      catch(CARGoSException& ex) {}
+      try { m_pcLight = GetSensor<CCI_FootBotLightSensor>("footbot_light"); }
+      catch(CARGoSException& ex) {}
+      try { m_pcCamera = GetSensor<CCI_ColoredBlobOmnidirectionalCameraSensor>("colored_blob_omnidirectional_camera"); }
+      catch(CARGoSException& ex) {}
+      try { m_pcWheelsS = GetSensor<CCI_DifferentialSteeringSensor>("differential_steering"); }
+      catch(CARGoSException& ex) {}
+      /* Initialize the rest */
+      CBuzzController::Init(t_node);
+   }
+   catch(CARGoSException& ex) {
+      THROW_ARGOSEXCEPTION_NESTED("Error initializing the Buzz controller for the foot-bot", ex);
+   }
+}
+
+// Figure out if we need a turret sensor update function
+// We definitely need a UpdateSensors for the force sensor though (In CBuzzControllerKheperaIV::UpdateSensors()
+
+Line 552 gripper and turret functions using pointers:
+void CBuzzControllerFootBot::GripperLock() {
+   m_pcGripper->LockPositive();
+}
+
+/****************************************/
+/****************************************/
+
+void CBuzzControllerFootBot::GripperUnlock() {
+   m_pcGripper->Unlock();
+}
+
+/****************************************/
+/****************************************/
+
+void CBuzzControllerFootBot::TurretEnable() {
+   m_pcTurretA->SetMode(CCI_FootBotTurretActuator::MODE_POSITION_CONTROL);
+}
+
+/****************************************/
+/****************************************/
+
+void CBuzzControllerFootBot::TurretDisable() {
+   m_pcTurretA->SetMode(CCI_FootBotTurretActuator::MODE_OFF);
+}
+
+/****************************************/
+/****************************************/
+
+void CBuzzControllerFootBot::TurretSet(Real f_rotation) {
+   m_pcTurretA->SetRotation(CRadians(f_rotation));
+}
+
+TODO : FOR buzz_controller_kheperaiv.h
+include control_interface/ci_kheperaiv_turret_actuator.h and ci_kheperaiv_gripper_actuator.h
+// Will also need
+include control_interface/ci_kheperaiv_force_sensor.h
+
+Need void functions in public : 
+   void GripperLock();
+   void GripperUnlock();
+   void TurretEnable();
+   void TurretDisable();
+   void TurretSet(Real f_rotation);
+   // Also any functions like line 552 above for force sensor we need
+Need protected CCI : 
+   /* Pointer to the foot-bot gripper actuator */
+   CCI_FootBotGripperActuator* m_pcGripper;
+   /* Pointer to the foot-bot turret actuator */
+   CCI_FootBotTurretActuator* m_pcTurretA;
+   /* Pointer to the kheperaiv force sensor as well */
+   // Need to make this CCI for it
+   
+Only have 8 proximity sensors, need to edit zmq_utility.py line 14 to have sensors from 0 to 7
+zmq_utility is in pytorch/python_code/zmq_utility.py
+
+TODO : FOR collectiveRlTransport.h:
+Change all instances of footbot into kheperaiv
+FOR collectiveRlTransport.cpp:
+Change all instances of footbot into kheperaiv
+make sure number of proximity sensors was adjusted in zmq_utility.py (pytorch/python_code/Data/)
+FOR collectiveRlTransort0/-1/_template.argos:
+unsure if this is a generated xml or if we have to edit it
+
+TODO : For kheperaiv_entity.cpp : kheperaiv_entity.h should be good, but we missed everything with the gripper so we now need to fix that in the .cpp
+
+
+   
+   
