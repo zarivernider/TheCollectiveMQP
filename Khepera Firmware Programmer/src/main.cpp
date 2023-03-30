@@ -158,6 +158,11 @@ void loop() {
 
   // delay(4000);
 // Read status 0x6F
+
+motor.enable(true);
+motor.setFreq(1000);
+
+
 motor.readAddress(0x6F);
 delay(4000);
 // Read total status 0x00
@@ -167,7 +172,6 @@ delay(4000);
 motor.readAddress(0x06);
 delay(4000);
 
-// motor.enable(true);
-// motor.setFreq(1000);
+
   
 }

@@ -41,7 +41,7 @@ void EEPROM::read(uint16_t address, uint16_t numbElements) {
     i2c_comm.sdkreadArray(returnInt, address, numbElements, i2cAddress);
     for(int iter = 0; iter < numbElements; iter++) {
         Serial.print("Address: ");
-        Serial.print(iter / 2, HEX);
+        Serial.print(iter / 2 + address/2, HEX);
         Serial.print("\t Value: ");
         Serial.println(returnInt[iter], HEX);
     }
