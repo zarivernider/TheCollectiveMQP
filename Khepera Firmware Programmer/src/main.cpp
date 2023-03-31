@@ -160,18 +160,20 @@ void loop() {
 // Read status 0x6F
 
 motor.enable(true);
-motor.setFreq(1000);
+motor.setFreq(16);
 
 
-motor.readAddress(0x6F);
-delay(4000);
-// Read total status 0x00
-motor.readAddress(0x00);
-delay(4000);
-// Read inputs 0x06
-motor.readAddress(0x06);
-delay(4000);
+// motor.readAddress(0x6F);
+// delay(4000);
+// // Read total status 0x00
+// motor.readAddress(0x00);
+// delay(4000);
+// // Read inputs 0x06
+// motor.readAddress(0x06);
+// delay(4000);
 
 
   
 }
+
+// Highest frequency is 17000

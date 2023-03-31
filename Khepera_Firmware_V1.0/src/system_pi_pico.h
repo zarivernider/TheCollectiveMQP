@@ -21,4 +21,5 @@ void writeReg(uint32_t addr, uint8_t numbBits, uint8_t offset, uint32_t data);
 // #define DREQ_ADCs 36 // No longer used
 #define IO_BANK_PROC0_INTE1 (IO_BANK0_BASE | 0x104)
 #define IO_BANK_INTR1 (IO_BANK0_BASE | 0xf4)
+#define system_speed 125000000
 #endif

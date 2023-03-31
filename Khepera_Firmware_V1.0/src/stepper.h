@@ -7,6 +7,9 @@
   Servo class to manipulate servos where the max pulse width time in microseconds is less than 5000 uS. Angle range is modifiable. 
   Works for any GPIO pin
 */
+#define maxFreq 17000
+#define minFreq 16
+#define systemFreq 1000000
 class Stepper
 {
 private:
@@ -28,7 +31,6 @@ private:
   uint16_t pwmioOffset;
   uint16_t dirioOffset;
   uint16_t enioOffset;
-  uint32_t systemFreq;
   uint8_t UARTpin;
 
 
@@ -52,7 +54,8 @@ Stepper(uint8_t pwmPin, uint8_t directionPin, uint8_t enablePin, uint8_t MS1pin,
   void setSpeed(int16_t RPMspeed);
   void setDirection(bool isFwd);
   void brakeStop();
-  void setFreq(int16_t freq);
+  void setDirFreq(int16_t freq);
+  void setFreq(uint16_t freq);
   void setMicroSteps(uint8_t setting);
   void writeAddress(uint8_t regAddres, uint32_t message);
   uint8_t calcCRC(uint8_t* datagram, uint8_t datagramLength);

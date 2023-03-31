@@ -19,7 +19,7 @@ ToDo List:
   - Write and test sending negative numbers through I2C
 
 */
-
+// 
 
 // Global definitions
 #define numbLEDsRing 27 // Number of LEDs in the ring
@@ -28,12 +28,15 @@ ToDo List:
 #define I2C_Sec_Address 0x24 // Address of the I2C module 
 #define maxEncoder 46002
 #define minEncoder 1312
-// #define openGripperAngle 90 // degrees
-// #define closeGripperAngle 0 // degrees
+#define deltaEncoder (maxEncoder - minEncoder)
+#define halfEncoder (deltaEncoder >> 1)
 #define BACKDRIVE 0
 #define POSITION 1
 #define SPEED 2
 #define STOP 3
+#define PID_BAUD 16
+#define PID_KI_TOLERANCE 5586 // Disable KI when more than 1/8 of circle away 
+#define Q_VALUE 10 // Integers are set up as Q10 values
 // Pin assignments
 #define stepperDirPin 0
 #define stepperPWMPin 1
@@ -55,12 +58,12 @@ ToDo List:
 #define gripperPin 13
 #define writeProtectIO 20
 // I2C Register map
-uint16_t turretDesPosition = 0x0000; // 0x00: Desired position
+uint16_t turretDesPosition = halfEncoder >> 2; // 0x00: Desired position
 uint16_t turretEncoder = 0; // 0x01: Actual position. Raw output from the AS5600
 uint16_t turretSpeed = 1000; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
-uint16_t turretMaxSpeed = 1001; // 0x03: Max speed the turret can move
-uint16_t turretMaxTolerance = 0; // 0x04: Tolerance of PID function
-uint16_t turretKp = 0; // 0x05: Q15 representation of the proportional constant
+uint16_t turretMaxSpeed = 0xFFFF; // 0x03: Max speed the turret can move
+uint16_t turretMaxTolerance = 141; // 0x04: Tolerance of PID function
+uint16_t turretKp = 1331; // 0x05: Q15 representation of the proportional constant
 uint16_t turretKi = 0; // 0x06: Q15 representation of the integral constant
 uint16_t turretKd = 0; // 0x07: Q15 representation of the derivative constant
 uint16_t turretState = 0; //0x08: State representation of the turret. Only bottom two bits significant
@@ -113,6 +116,9 @@ void testADC(); // Test both ADC's and print the return values. Call in loop.
 void testPrint(); // Random function. Modify whenever to print whatever is desired
 void globalStop(); // Stop everything
 
+// Global Variables
+int32_t sumError = 0;
+
 void setup() {
   // Initialize variables memory address to I2C registers
   i2c_p.arrMap[0] = &turretDesPosition;
@@ -159,7 +165,9 @@ void setup() {
   i2c_p.init(I2C_Sec_Address);
   eeprom.init();
   extLED.assertIO(true);
-  eeprom.readArray(i2c_p.arrMap, numbReg);
+
+  // eeprom.readArray(i2c_p.arrMap, numbReg);
+
   adc.calibrateMulti(400);
   delay(1000);
   extLED.assertIO(false);
@@ -198,7 +206,12 @@ void loop() {
     // Reset flag
     calibrateADC = 0x0;
   }
-
+    Serial.print("Zero: ");
+    Serial.print(adc.getrawADCMulti(1));
+    Serial.print("\t Parallel: ");
+    Serial.print(forceSensorParallel);
+    Serial.print("\t Perpendicular: ");
+    Serial.println(forceSensorPerpendicular);
   // Set encoder position
   turretEncoder = constrain(absoluteEncoder.getCtr(), minEncoder, maxEncoder); // Set the encoder between min and max. Constrain to prevent ovf
   uint16_t tempTrim = turretEncoderTrim - minEncoder; // Get the distance between the trim value and the minimum recorded encoder value
@@ -237,17 +250,69 @@ void loop() {
     motor.brakeStop();
     extLED.assertIO(false);
     break;
-  case POSITION:
+  case POSITION: {
+    
     // ToDo: Write control loop
+    static uint32_t oldTime = 0;
+    uint32_t currentTime = millis();
+    if(currentTime - oldTime > PID_BAUD) {
+      int16_t translatedPosition; // New position based on target
+      static int prevError; // Previous error for D calculation
+      // Point to the oppposite side of the circle
+      int16_t half_position = turretDesPosition >= halfEncoder  ? turretDesPosition - halfEncoder : turretDesPosition + halfEncoder;
+      // Check if the opposite side of the circle is on the left side of the circle (greater than 180 degrees). True if yes
+      bool leftHalfCircle = half_position >= halfEncoder ? true : false;
+      // Check if the current position is on the left side (greater than 180 degrees) true if yes
+      bool currentPositionLeft = turretPosition >= half_position ? true : false;
+
+      // If both attributes are in the left side of the circle then subtract a full circle
+      if(leftHalfCircle && currentPositionLeft) translatedPosition = turretPosition - deltaEncoder;
+      // If both attributes are in the right side of the circle then add a full circle
+      else if(!leftHalfCircle && !currentPositionLeft) translatedPosition = turretPosition + deltaEncoder;
+      // If neither conditions are true then keep the position the same
+      else translatedPosition = turretPosition;
+
+      // Define an error
+      int16_t error = (translatedPosition - turretDesPosition) >> 1; // Lose a bit of precision for fixed point arithmetic
+      static bool PIDisenable = true;
+      if(abs(error) > turretMaxTolerance >> 1) PIDisenable = true;
+      else if (abs(error) < PID_KI_TOLERANCE >> 2) PIDisenable = false;
+
+      if(PIDisenable) {
+        motor.enable(true);
+      // Find the delta error. delta T is combined in the derivative constant
+      int16_t deltaError = error - prevError;
+      
+      // Zero the Ki band when the error is too large
+      if(abs(error) > PID_KI_TOLERANCE) {
+          sumError = 0;
+      }
+      else sumError += error; // sum the errors
+      // Fixed point calculation to calculate the proper output
+      int16_t motorOut = ((int32_t)turretKp*error  >> Q_VALUE)+ 
+                    ((int32_t)turretKd*deltaError >> Q_VALUE) + 
+                    ((int32_t)turretKi*sumError >> Q_VALUE); 
+      motor.setDirFreq(motorOut);
+      oldTime = currentTime;
+      prevError = error;
+      }
+      else {
+        motor.enable(false);
+      }
+    }
+
     break;
-  case SPEED:
-      motor.enable(true);
-      extLED.assertIO(true);
-      // turretSpeed = abs(turretSpeed) > turretMaxSpeed ? turretMaxSpeed : turretSpeed;
-      // if(turretSpeed > 0) motor.setDirection(true);
-      // else motor.setDirection(false);
-      motor.setFreq(turretSpeed);
-      break;
+    }
+  case SPEED: {
+    motor.enable(true);
+    int negTurretSpeed = (int16_t)turretSpeed;
+    if(negTurretSpeed > 0) motor.setDirection(true);
+    else motor.setDirection(false);
+    negTurretSpeed = abs(negTurretSpeed) > turretMaxSpeed ? turretMaxSpeed : abs(negTurretSpeed);
+    motor.setFreq(negTurretSpeed);
+    motor.setFreq(turretSpeed);
+    break;
+    }
   case STOP:
     motor.enable(true);
     motor.brakeStop();
@@ -258,7 +323,7 @@ void loop() {
   forceSensorParallel = adc.getADCMulti(0); 
   forceSensorPerpendicular =  adc.getADCMulti(2); 
   // testADC();
-  testPrint();
+  // testPrint();
 
   }
 
