@@ -16,13 +16,11 @@
 // #include <../template/cgripperI2C.h> doesn't exists???
 #include "cgripperI2C.h"
 
-
 i2c_t i2c;
 // TODO : Check if this devpath even works (seems to worlk - Yasmine)
 char *devpath = NULL;// might default to correct devpath, but unsure
 int status;
-// TODO : change addr to something that isn't already being used
-int addr = 0x15;
+int addr = 0x24; // CONFIRMED CORRECT
 
 int cgripper_init( void ){
 	/* Initializes the connection to the gripper, expects a response
@@ -45,7 +43,8 @@ int close_gripper(void){
 unsigned short cgripper_Turret_Get_Position(){
 	unsigned short Position;
 	status = i2c_read16(&i2c,addr,TURRET_POSITION,&Position);
-	return Position;
+	unsigned short DegPosition = Position*360/44690;
+	return DegPosition;
 }
 unsigned short cgripper_Turret_Get_Speed(){
 	unsigned short Speed;
@@ -66,11 +65,11 @@ unsigned short cgripper_Turret_Get_Max_Tolerance(){
 	return Max_Tolerance;
 }
 
-void cgripper_Turret_Set_Max_Speed(unsigned short Max_Speed){
+void cgripper_Turret_Set_Max_Speed( unsigned short Max_Speed){
 //	knet_write16( dev , TURRET_MAX_SPEED , Max_Speed );
 	status = i2c_write16(&i2c, addr, TURRET_MAX_SPEED, Max_Speed);
 }
-void cgripper_Turret_Set_Max_Tolerance(unsigned short Max_Tolerance){
+void cgripper_Turret_Set_Max_Tolerance( unsigned short Max_Tolerance){
 	status = i2c_write16(&i2c, addr, TURRET_MAX_TOLERANCE, Max_Tolerance);
 }
 /* Gripper Functions */
@@ -82,19 +81,24 @@ unsigned short cgripper_Gripper_Get_Position(){
 	return Position;
 }
 
-void cgripper_Gripper_Set_Position(unsigned short Position){
+void cgripper_Gripper_Set_Position( unsigned short Position){
 	// i2c_write16(&i2c,addr,GRIPPER_POSITION,Position); // for use on khepera
 	i2c_write16(&i2c,addr,0x1,Position); // for testing on pi pico
 }
 
 /* Force Sensor Functions */
-unsigned short cgripper_ForceSensor_Get_Force(){
+unsigned short cgripper_ForceSensor_Get__Parallel_Force(){
 	unsigned short Force;
 //	knet_read8( dev , FORCE_SENSOR_FORCE , &Force );
-	i2c_read16(&i2c,addr,FORCE_SENSOR_FORCE,&Force);
+	i2c_read16(&i2c,addr,FORCE_SENSOR_PARALLEL,&Force);
 	return Force;
 }
-//extern unsigned short cgripper_ForceSensor2_Get_Force( knet_dev_t * dev );
+unsigned short cgripper_ForceSensor_Get__Perpendicular_Force(){
+	unsigned short Force;
+//	knet_read8( dev , FORCE_SENSOR_FORCE , &Force );
+	i2c_read16(&i2c,addr,FORCE_SENSOR_PERPENDICULAR,&Force);
+	return Force;
+}
 //extern unsigned short cgripper_ForceSensor3_Get_Force( knet_dev_t * dev );
 /* LED Functions */
 unsigned short cgripper_LEDRing_Get_Config(){
@@ -104,6 +108,80 @@ unsigned short cgripper_LEDRing_Get_Config(){
 	return Config;
 
 }
-void cgripper_LEDRing_Set_Status(unsigned short Config){
+void cgripper_LEDRing_Set_Status( unsigned short Config){
 	i2c_write16(&i2c,addr,LED_CONFIG,Config);
+}
+
+void testLED() {
+	i2c_write16(&i2c, addr, 0x16, 0x6DB6);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x17, 0xDB6D);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x18, 0xB6DB);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x19, 0x6DB6);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x1A, 0x0001);
+	sleep(1);
+	int i=0;
+	for(i=0; i<32; i++){
+		i2c_write16(&i2c, addr, 0xD, i);
+		i2c_write16(&i2c, addr, 0x1A, 0x0001);
+		usleep(500000);
+	}
+}
+
+void rotateTurret(){
+	
+	// sleep(1);
+	// 0x8 to 2
+	i2c_write16(&i2c, addr, 0x8, 0x1); // 0x2
+	// sleep(1);
+	// stop turning
+	// i2c_write16(&i2c, addr, 0x8, 0);
+	// sleep(1);
+}
+
+void setTurretSpeed(int speed){
+	// i2c_write16(&i2c, addr, 0x3, 1001); // reset the max speed bc zach accidentally flashed it w a maz of 0
+	// 0x2 to decimal value of speed (SETTING SPEED)
+	i2c_write16(&i2c, addr, 0x2, speed);
+}
+
+void setKi(int Ki){
+	i2c_write16(&i2c, addr, 0x6, Ki);
+}
+
+void setKp(int Kp){
+	i2c_write16(&i2c, addr, 0x5, Kp);
+}
+
+void set_EEPROM(){
+	i2c_write16(&i2c, addr, EEPROM, 1);
+}
+
+void set_turret_zero(){
+	i2c_write16(&i2c, addr, TURRET_ZERO, 1);
+}
+
+void setTurretPosition(int pos){
+	i2c_write16(&i2c, addr, 0x0, pos);
+}
+
+void stop(){
+	// stop turning
+	i2c_write16(&i2c, addr, 0x8, 0);
+	sleep(1);
+
+	// turn off LEDs
+	i2c_write16(&i2c, addr, 0x16, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x17, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x18, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x19, 0);
+	// sleep(1);
+	i2c_write16(&i2c, addr, 0x1A, 0x001);
+	sleep(1);
 }

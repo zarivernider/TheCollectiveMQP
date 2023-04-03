@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "servo.h"
 #include "system_pi_pico.h"
-Servo pwmTest(28);
+Servo pwmTest(3);
 void setup() {
   // put your setup code here, to run once:
   pwmTest.attach();
