@@ -9,15 +9,9 @@
 #include <Wire.h>
 #include "EEPROM.h"
 /*
-ToDo List:
+Backburner List:
   - Set interrupt priorities
   - Set SPI class to reset proper pinouts
-  - Make sure disabling interrupts doesn't break anything || should interrupts be disabled?
-  - Find stepper deadband
-  - Set max and min speed for the stepper motor
-  - Write control algorithm for the stepper motor
-  - Write and test sending negative numbers through I2C
-
 */
 // 
 
@@ -36,7 +30,7 @@ ToDo List:
 #define STOP 3
 #define PID_BAUD 16
 #define PID_KI_TOLERANCE 5586 // Disable KI when more than 1/8 of circle away 
-#define Q_VALUE 10 // Integers are set up as Q10 values
+#define Q_VALUE 12 // Integers are set up as Q10 values
 // Pin assignments
 #define stepperDirPin 0
 #define stepperPWMPin 1
@@ -63,9 +57,9 @@ uint16_t turretEncoder = 0; // 0x01: Actual position. Raw output from the AS5600
 uint16_t turretSpeed = 1000; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
 uint16_t turretMaxSpeed = 0xFFFF; // 0x03: Max speed the turret can move
 uint16_t turretMaxTolerance = 141; // 0x04: Tolerance of PID function
-uint16_t turretKp = 1331; // 0x05: Q15 representation of the proportional constant
-uint16_t turretKi = 0; // 0x06: Q15 representation of the integral constant
-uint16_t turretKd = 0; // 0x07: Q15 representation of the derivative constant
+uint16_t turretKp = 5325; // 0x05: Q12 representation of the proportional constant
+uint16_t turretKi = 0; // 0x06: Q12 representation of the integral constant
+uint16_t turretKd = 0; // 0x07: Q12 representation of the derivative constant
 uint16_t turretState = 0; //0x08: State representation of the turret. Only bottom two bits significant
                           // 0: Backdriveable
                           // 1: Goto position
@@ -99,6 +93,10 @@ uint16_t writeturretTrim = 0x0;     // 0x1D Boolean for encoder orientation to b
 uint16_t turretPosition = 0x0;      // 0x1E encoder position translated from 0 - maxEnc - minEnc. Convert by multiplying with 360 / 44690
 uint16_t calibrateADC = 0x0;        // 0x1F Boolean to calibrate the ADCs. 1 calibrates ADCs. Auto rewrites to 0
 
+// Debug Registers only - Not included in documentation. Set variables based on default values and not the EEPROM. Require a restart. 
+
+uint16_t runTestSequence = 0x0;     // 0x20 Boolean to test the system. 1 Runs test sequence. Auto rewrites to 0. 
+
 // Class initialization
 APA102 stringLEDs(numbLEDsRing);
 ADC adc(0b111, 0); // Activate all channels and DMA channel 0
@@ -115,6 +113,8 @@ void testLED(); // Test the LEDs by setting the colors to alternate. Call in set
 void testADC(); // Test both ADC's and print the return values. Call in loop.
 void testPrint(); // Random function. Modify whenever to print whatever is desired
 void globalStop(); // Stop everything
+void testSystems(); // Test all subsystems but ADC
+void printVal(uint16_t testVal); // Test sending a specific value
 
 // Global Variables
 int32_t sumError = 0;
@@ -153,6 +153,7 @@ void setup() {
   i2c_p.arrMap[29] = &writeturretTrim;
   i2c_p.arrMap[30] = &turretPosition;
   i2c_p.arrMap[31] = &calibrateADC;
+  i2c_p.arrMap[32] = &runTestSequence;
 
 
   // Initialize classes 
@@ -166,7 +167,7 @@ void setup() {
   eeprom.init();
   extLED.assertIO(true);
 
-  // eeprom.readArray(i2c_p.arrMap, numbReg);
+  eeprom.readArray(i2c_p.arrMap, numbReg);
 
   adc.calibrateMulti(400);
   delay(1000);
@@ -310,7 +311,6 @@ void loop() {
     else motor.setDirection(false);
     negTurretSpeed = abs(negTurretSpeed) > turretMaxSpeed ? turretMaxSpeed : abs(negTurretSpeed);
     motor.setFreq(negTurretSpeed);
-    motor.setFreq(turretSpeed);
     break;
     }
   case STOP:
@@ -324,6 +324,7 @@ void loop() {
   forceSensorPerpendicular =  adc.getADCMulti(2); 
   // testADC();
   // testPrint();
+  if(runTestSequence) testSystems();
 
   }
 
@@ -384,6 +385,14 @@ void testPrint() {
   }
 }
 
+void printVal(uint16_t testVal) {
+  static uint32_t oldTime = 0;
+  if(millis() - oldTime > 1000) {
+    Serial.println(testVal);
+    oldTime = millis();
+  }
+}
+
 void globalStop() {
   turretState = 0; // Turn off turret
   isGripper = 1; // Open Gripper1
@@ -391,6 +400,65 @@ void globalStop() {
   writeturretTrim = 0;
 
 
+}
+
+void testSystems() {
+  static uint16_t testCounter = 0;
+  static uint32_t oldTime = 0;
+  extLED.assertIO(true);
+  if(millis() - oldTime > 2000) {
+    testCounter++;
+    oldTime = millis();
+  }
+  if(testCounter == 1) isGripper = 0; // Open gripper
+  else if(testCounter == 3) isGripper = 1; // Close gripper
+  else if(testCounter == 5) { // Start rotation
+    turretState = SPEED;
+    turretMaxSpeed = 0xFFFF;
+    turretSpeed = 1000;
+  }
+  else if(testCounter == 8) { // Turn on LEDs
+    LEDcolorPresets[0] = 0x0;
+    LEDcolorPresets[1] = 0x0;
+    LEDcolorPresets[2] = 0x00FF;
+    LEDcolorPresets[3] = 0x0;
+    LEDcolorPresets[4] = 0xFF00;
+    LEDcolorPresets[5] = 0x0;
+    LEDcolorPresets[6] = 0x0000;
+    LEDcolorPresets[7] = 0xFF;
+    testLED();
+  }
+  else if(testCounter == 9) { // Change rotation 
+    turretSpeed = (int16_t)-1000;
+  }
+  else if(testCounter == 13) {
+    turretState = BACKDRIVE;
+  }
+  else if(testCounter == 14) {
+    LEDcolors[0] = 0x0;
+    LEDcolors[1] = 0x0;
+    LEDcolors[2] = 0x0;
+    LEDcolors[3] = 0x0;
+    LEDflush = 1;
+  }
+  else if(testCounter == 15) {
+    turretMaxTolerance = 141;
+    turretState = POSITION;
+    turretDesPosition = 0;
+    turretKp = 5325;
+    turretKi = 0; 
+    turretKd = 0;
+  }
+  else if(testCounter == 20) {
+    turretDesPosition = halfEncoder;
+  }
+  else if(testCounter == 26) {
+    turretState = BACKDRIVE;
+    runTestSequence = 0x0;
+    testCounter = 0;
+    extLED.assertIO(false);
+  }
+  
 }
 
 
