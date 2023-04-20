@@ -8,6 +8,7 @@
 #include "I2C_Primary.h"
 #include <Wire.h>
 #include "EEPROM.h"
+#include "DSP.h"
 /*
 Backburner List:
   - Set interrupt priorities
@@ -28,6 +29,10 @@ Backburner List:
 #define POSITION 1
 #define SPEED 2
 #define STOP 3
+
+#define PUSH 4
+#define PUSH_THRESHOLD 15
+
 #define PID_BAUD 16
 #define PID_KI_TOLERANCE 5586 // Disable KI when more than 1/8 of circle away 
 #define Q_VALUE 12 // Integers are set up as Q10 values
@@ -47,14 +52,14 @@ Backburner List:
 #define stepperS1Pin 22
 #define stepperS2Pin 21
 #define groundADCchannel 1
-#define yforceADCchannel 0
-#define xforceADCchannel 2
+#define parallelforceADCchannel 2
+#define perpendicularforceADCchannel 0
 #define gripperPin 13
 #define writeProtectIO 20
 // I2C Register map
 uint16_t turretDesPosition = halfEncoder >> 2; // 0x00: Desired position
 uint16_t turretEncoder = 0; // 0x01: Actual position. Raw output from the AS5600
-uint16_t turretSpeed = 1000; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
+uint16_t turretSpeed = 1000; // 0x02: Current speed the turret is moving 
 uint16_t turretMaxSpeed = 0xFFFF; // 0x03: Max speed the turret can move
 uint16_t turretMaxTolerance = 141; // 0x04: Tolerance of PID function
 uint16_t turretKp = 5325; // 0x05: Q12 representation of the proportional constant
@@ -65,6 +70,8 @@ uint16_t turretState = 0; //0x08: State representation of the turret. Only botto
                           // 1: Goto position
                           // 2: Set speed
                           // 3: Hold position
+
+                          // 4: Push
 
 uint16_t isGripper = 0; //0x09: Boolean for gripper being open or closed. 1 is Open
 uint16_t gripperPresets = 0x5A00; // 0x0A: set open and close position for gripper in degrees. Upper byte is open
@@ -96,6 +103,12 @@ uint16_t calibrateADC = 0x0;        // 0x1F Boolean to calibrate the ADCs. 1 cal
 // Debug Registers only - Not included in documentation. Set variables based on default values and not the EEPROM. Require a restart. 
 
 uint16_t runTestSequence = 0x0;     // 0x20 Boolean to test the system. 1 Runs test sequence. Auto rewrites to 0. 
+
+
+uint16_t steadyStateADC;
+uint16_t pushKp = 4096;             // 0x21
+uint16_t parallelFiltered;          // 0x22
+uint16_t perpendicularFiltered;     // 0x23
 
 // Class initialization
 APA102 stringLEDs(numbLEDsRing);
@@ -154,6 +167,7 @@ void setup() {
   i2c_p.arrMap[30] = &turretPosition;
   i2c_p.arrMap[31] = &calibrateADC;
   i2c_p.arrMap[32] = &runTestSequence;
+  i2c_p.arrMap[33] = &pushKp;
 
 
   // Initialize classes 
@@ -170,6 +184,7 @@ void setup() {
   eeprom.readArray(i2c_p.arrMap, numbReg);
 
   adc.calibrateMulti(400);
+  steadyStateADC = adc.getADCMulti(perpendicularforceADCchannel); // Set steady state 
   delay(1000);
   extLED.assertIO(false);
 }
@@ -202,17 +217,12 @@ void loop() {
     // Make diagnostic LED bright
     extLED.assertIO(true);
     adc.calibrateMulti(400);
+    steadyStateADC = adc.getADCMulti(perpendicularforceADCchannel);
     // Make diagnostic LED low
     extLED.assertIO(false);
     // Reset flag
     calibrateADC = 0x0;
   }
-    Serial.print("Zero: ");
-    Serial.print(adc.getrawADCMulti(1));
-    Serial.print("\t Parallel: ");
-    Serial.print(forceSensorParallel);
-    Serial.print("\t Perpendicular: ");
-    Serial.println(forceSensorPerpendicular);
   // Set encoder position
   turretEncoder = constrain(absoluteEncoder.getCtr(), minEncoder, maxEncoder); // Set the encoder between min and max. Constrain to prevent ovf
   uint16_t tempTrim = turretEncoderTrim - minEncoder; // Get the distance between the trim value and the minimum recorded encoder value
@@ -293,6 +303,9 @@ void loop() {
       int16_t motorOut = ((int32_t)turretKp*error  >> Q_VALUE)+ 
                     ((int32_t)turretKd*deltaError >> Q_VALUE) + 
                     ((int32_t)turretKi*sumError >> Q_VALUE); 
+      // Limit max speed
+      motorOut = abs(motorOut) > turretMaxSpeed ? turretMaxSpeed : motorOut;
+      turretSpeed = motorOut; // Set speed equal to the current motor setting
       motor.setDirFreq(motorOut);
       oldTime = currentTime;
       prevError = error;
@@ -317,11 +330,30 @@ void loop() {
     motor.enable(true);
     motor.brakeStop();
     break;
+  case PUSH: {
+    motor.enable(true);
+    int16_t error = forceSensorPerpendicular - steadyStateADC;
+    error = abs(error) < PUSH_THRESHOLD ? 0 : error;
+    int16_t motorOut = (int32_t)pushKp*error  >> Q_VALUE;
+    motor.setDirFreq(motorOut*8);
+    break;
+    }
   }
 
   // Get the current ADC values
-  forceSensorParallel = adc.getADCMulti(0); 
-  forceSensorPerpendicular =  adc.getADCMulti(2); 
+  forceSensorParallel = adc.getADCMulti(parallelforceADCchannel); 
+  forceSensorPerpendicular =  adc.getADCMulti(perpendicularforceADCchannel); 
+
+  // Update force sensor through the filter periodically
+  static uint32_t oldTime = 0;
+  if(millis() - oldTime > 15) {
+    addMedFilter(forceSensorParallel, &parallelFilter);
+    addMedFilter(forceSensorPerpendicular, &perpendicularFilter);
+    parallelFiltered = getMedFilter(parallelFilter);
+    perpendicularFiltered = getMedFilter(perpendicularFilter);
+    oldTime = millis();
+  }
+
   // testADC();
   // testPrint();
   if(runTestSequence) testSystems();
