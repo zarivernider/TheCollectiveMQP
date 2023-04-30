@@ -2,13 +2,18 @@
 
 #include <Arduino.h>
 
-struct MedFilter {
-    uint16_t arrayValue[5];
+// Slightly silly way of handling median and average filters
+// To optimize for speed, the average filter must be 
+#define filterSize 4 // Size of the filter. Must be 2^numbAvgBits for average filter or 5 for Median. Anymore can hurt the system
+#define numbAvgBits 2 // Number of bits in the average filter equal to log2(filterSize)
+struct filterBuffer {
+    uint16_t arrayValue[filterSize];
 };
-MedFilter perpendicularFilter; 
-MedFilter parallelFilter;
+
+filterBuffer perpendicularFilter; 
+filterBuffer parallelFilter;
 // Calculate median for 5. Hardcoded because a larger size could lead to speed complications
-void find_med_five(struct MedFilter med, uint16_t *med_val)
+void find_med_five(struct filterBuffer med, uint16_t *med_val)
 {
     
     uint16_t min_val;
@@ -39,14 +44,23 @@ void find_med_five(struct MedFilter med, uint16_t *med_val)
     *med_val = min_val;
 }
 // Add the value to the median filter
-void addMedFilter(uint16_t value, struct MedFilter *medFilter) {
+void addFilter(uint16_t value, struct filterBuffer *medFilter) {
     static uint16_t arrayPos = 0;
     arrayPos = (arrayPos + 1) % 5;
     medFilter->arrayValue[arrayPos] = value;
 }
 // Run through the median filter
-uint16_t getMedFilter(struct MedFilter medFilter) {
+uint16_t getMedFilter(struct filterBuffer medFilter) {
     uint16_t medianValue;
     find_med_five(medFilter, &medianValue);
     return medianValue;
 }
+
+uint16_t getAvgFilter(struct filterBuffer avgFilter) {
+    uint32_t sum = 0;
+    for(int i = 0; i < filterSize; i++) sum += avgFilter.arrayValue[i];
+    return sum >> numbAvgBits;
+
+}
+
+

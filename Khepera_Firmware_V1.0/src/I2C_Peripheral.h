@@ -17,7 +17,7 @@
       Send byte 2: desired least significant byte
       Send byte 3: desired most signigicant byte
 */
-#define numbReg 34
+#define numbReg 36
 class I2C_P {
   private: 
     // Storage variables
