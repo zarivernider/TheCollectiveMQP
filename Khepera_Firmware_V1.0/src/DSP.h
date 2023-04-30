@@ -9,9 +9,10 @@
 struct filterBuffer {
     uint16_t arrayValue[filterSize];
 };
-
+// filter instantiations
 filterBuffer perpendicularFilter; 
 filterBuffer parallelFilter;
+
 // Calculate median for 5. Hardcoded because a larger size could lead to speed complications
 void find_med_five(struct filterBuffer med, uint16_t *med_val)
 {
@@ -55,7 +56,7 @@ uint16_t getMedFilter(struct filterBuffer medFilter) {
     find_med_five(medFilter, &medianValue);
     return medianValue;
 }
-
+// Run through the average filter
 uint16_t getAvgFilter(struct filterBuffer avgFilter) {
     uint32_t sum = 0;
     for(int i = 0; i < filterSize; i++) sum += avgFilter.arrayValue[i];

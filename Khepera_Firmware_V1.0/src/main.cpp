@@ -99,17 +99,12 @@ uint16_t turretPosition = 0x0;      // 0x1E encoder position translated from 0 -
 uint16_t calibrateADC = 0x0;        // 0x1F Boolean to calibrate the ADCs. 1 calibrates ADCs. Auto rewrites to 0
 
 uint16_t steadyStateADC;
-uint16_t pushKp = 27000;             // 0x20
-uint16_t parallelFiltered;          // 0x21
-uint16_t perpendicularFiltered;     // 0x22
+uint16_t pushKp = 27000;             // 0x20: Q12 propoortional constant for the PUSH mode. 
+uint16_t parallelFiltered;           // 0x21: Filtered force sensor reading of the parallel sensor
+uint16_t perpendicularFiltered;      // 0x22: Filtered force sensor reading of the parallel sensor
+
 // Debug Registers only - Not included in documentation. Set variables based on default values and not the EEPROM. Require a restart. 
-uint16_t runTestSequence = 0x0;     // 0x25 Boolean to test the system. 1 Runs test sequence. Auto rewrites to 0. 
-
-
-
-
-
-
+uint16_t runTestSequence = 0x0;     // 0x23 Boolean to test the system. 1 Runs test sequence. Auto rewrites to 0. 
 
 // Class initialization
 APA102 stringLEDs(numbLEDsRing);
@@ -191,9 +186,6 @@ void setup() {
   steadyStateADC = adc.getADCMulti(perpendicularforceADCchannel); // Set steady state 
   delay(1000);
   extLED.assertIO(false);
-
-
-
 }
 
 void loop() {
@@ -352,18 +344,20 @@ void loop() {
   forceSensorParallel = adc.getADCMulti(parallelforceADCchannel); 
   forceSensorPerpendicular =  adc.getADCMulti(perpendicularforceADCchannel); 
 
-  // Update force sensor through the filter periodically. Data is updated every 3 mS
+  // Update force sensor through the filter periodically. Data is updated every 3 mS. Extra time prevents double reading a value
   static uint32_t oldTime_DSP = 0;
   if(millis() - oldTime_DSP > 4) {
+    // Add newest reading to the filter
     addFilter(forceSensorParallel, &parallelFilter);
     addFilter(forceSensorPerpendicular, &perpendicularFilter);
+    // Compute the filtered output
     parallelFiltered = getAvgFilter(parallelFilter);
     perpendicularFiltered = getAvgFilter(perpendicularFilter);
+    // Reset timers
     oldTime_DSP = millis();
   }
 
-  // testADC();
-  // testPrint();
+  // Check debug registers
   if(runTestSequence & 0x1) testSystems();
   else if(runTestSequence & 0x2) testForceSensors();
 
@@ -475,6 +469,8 @@ void testSystems() {
   
 }
 
+
+// Constants for the LED test that illuminates the string LEDs. Used for debug and kept separated from the rest of the code. 
 #define parallelFS 1000
 #define perpendicularFS 1000
 #define parallelThresh (parallelFS / (int)(numbLEDsRing >> 1))
