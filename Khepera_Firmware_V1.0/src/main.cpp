@@ -8,16 +8,11 @@
 #include "I2C_Primary.h"
 #include <Wire.h>
 #include "EEPROM.h"
+#include "DSP.h"
 /*
-ToDo List:
+Backburner List:
   - Set interrupt priorities
   - Set SPI class to reset proper pinouts
-  - Make sure disabling interrupts doesn't break anything || should interrupts be disabled?
-  - Find stepper deadband
-  - Set max and min speed for the stepper motor
-  - Write control algorithm for the stepper motor
-  - Write and test sending negative numbers through I2C
-
 */
 // 
 
@@ -25,18 +20,21 @@ ToDo List:
 #define numbLEDsRing 27 // Number of LEDs in the ring
 #define LEDsPerReg 8 // Number of LEDs in one register
 #define bitsPerLED 2
-#define I2C_Sec_Address 0x24 // Address of the I2C module 
-#define maxEncoder 46002
-#define minEncoder 1312
-#define deltaEncoder (maxEncoder - minEncoder)
-#define halfEncoder (deltaEncoder >> 1)
+#define I2C_Sec_Address 0x35 // Address of the I2C module 
 #define BACKDRIVE 0
 #define POSITION 1
 #define SPEED 2
 #define STOP 3
+
+#define PUSH 4
+#define PUSH_THRESHOLD 15
+#define maxEncoder 44500
+#define minEncoder 1350
+#define deltaEncoder (maxEncoder - minEncoder)
+#define halfEncoder (deltaEncoder >> 1)
 #define PID_BAUD 16
 #define PID_KI_TOLERANCE 5586 // Disable KI when more than 1/8 of circle away 
-#define Q_VALUE 10 // Integers are set up as Q10 values
+#define Q_VALUE 12 // Integers are set up as Q10 values
 // Pin assignments
 #define stepperDirPin 0
 #define stepperPWMPin 1
@@ -53,24 +51,25 @@ ToDo List:
 #define stepperS1Pin 22
 #define stepperS2Pin 21
 #define groundADCchannel 1
-#define yforceADCchannel 0
-#define xforceADCchannel 2
+#define parallelforceADCchannel 2
+#define perpendicularforceADCchannel 0
 #define gripperPin 13
 #define writeProtectIO 20
 // I2C Register map
 uint16_t turretDesPosition = halfEncoder >> 2; // 0x00: Desired position
 uint16_t turretEncoder = 0; // 0x01: Actual position. Raw output from the AS5600
-uint16_t turretSpeed = 1000; // 0x02: Current speed the turret is moving (was a signed int, does it need to be typecasted?)
+uint16_t turretSpeed = 1000; // 0x02: Current speed the turret is moving 
 uint16_t turretMaxSpeed = 0xFFFF; // 0x03: Max speed the turret can move
 uint16_t turretMaxTolerance = 141; // 0x04: Tolerance of PID function
-uint16_t turretKp = 1331; // 0x05: Q15 representation of the proportional constant
-uint16_t turretKi = 0; // 0x06: Q15 representation of the integral constant
-uint16_t turretKd = 0; // 0x07: Q15 representation of the derivative constant
-uint16_t turretState = 0; //0x08: State representation of the turret. Only bottom two bits significant
+uint16_t turretKp = 5325; // 0x05: Q12 representation of the proportional constant
+uint16_t turretKi = 0; // 0x06: Q12 representation of the integral constant
+uint16_t turretKd = 0; // 0x07: Q12 representation of the derivative constant
+uint16_t turretState = 3; //0x08: State representation of the turret. Only bottom two bits significant
                           // 0: Backdriveable
                           // 1: Goto position
                           // 2: Set speed
                           // 3: Hold position
+                          // 4: Push
 
 uint16_t isGripper = 0; //0x09: Boolean for gripper being open or closed. 1 is Open
 uint16_t gripperPresets = 0x5A00; // 0x0A: set open and close position for gripper in degrees. Upper byte is open
@@ -96,8 +95,16 @@ uint16_t writeEEPROM = 0x0;  // 0x1B: Boolean for EEPROM being written. 1 is wri
 
 uint16_t turretEncoderTrim = 28912; // 0x1C Current offset for the encoder
 uint16_t writeturretTrim = 0x0;     // 0x1D Boolean for encoder orientation to be set. 1 captures current orientation. Auto rewrites to 0
-uint16_t turretPosition = 0x0;      // 0x1E encoder position translated from 0 - maxEnc - minEnc. Convert by multiplying with 360 / 44690
+uint16_t turretPosition = 0x0;      // 0x1E encoder position translated from 0 - maxEnc - minEnc. Convert by multiplying with 360 / 43150
 uint16_t calibrateADC = 0x0;        // 0x1F Boolean to calibrate the ADCs. 1 calibrates ADCs. Auto rewrites to 0
+
+uint16_t steadyStateADC;
+uint16_t pushKp = 27000;             // 0x20: Q12 propoortional constant for the PUSH mode. 
+uint16_t parallelFiltered;           // 0x21: Filtered force sensor reading of the parallel sensor
+uint16_t perpendicularFiltered;      // 0x22: Filtered force sensor reading of the parallel sensor
+
+// Debug Registers only - Not included in documentation. Set variables based on default values and not the EEPROM. Require a restart. 
+uint16_t runTestSequence = 0x0;     // 0x23 Boolean to test the system. 1 Runs test sequence. Auto rewrites to 0. 
 
 // Class initialization
 APA102 stringLEDs(numbLEDsRing);
@@ -115,9 +122,13 @@ void testLED(); // Test the LEDs by setting the colors to alternate. Call in set
 void testADC(); // Test both ADC's and print the return values. Call in loop.
 void testPrint(); // Random function. Modify whenever to print whatever is desired
 void globalStop(); // Stop everything
+void testSystems(); // Test all subsystems but ADC
+void printVal(uint16_t testVal); // Test sending a specific value
+void testForceSensors();
 
 // Global Variables
 int32_t sumError = 0;
+
 
 void setup() {
   // Initialize variables memory address to I2C registers
@@ -153,7 +164,11 @@ void setup() {
   i2c_p.arrMap[29] = &writeturretTrim;
   i2c_p.arrMap[30] = &turretPosition;
   i2c_p.arrMap[31] = &calibrateADC;
-
+  i2c_p.arrMap[32] = &pushKp;
+  i2c_p.arrMap[33] = &parallelFiltered;          
+  i2c_p.arrMap[34] = &perpendicularFiltered;    
+  i2c_p.arrMap[35] = &runTestSequence;
+ 
 
   // Initialize classes 
   stringLEDs.Init(); // LEDs first. 4 SPI pins are assigned, but 2 are needed. Others will be reassigned. 
@@ -166,9 +181,9 @@ void setup() {
   eeprom.init();
   extLED.assertIO(true);
 
-  // eeprom.readArray(i2c_p.arrMap, numbReg);
-
+  eeprom.readArray(i2c_p.arrMap, numbReg);
   adc.calibrateMulti(400);
+  steadyStateADC = adc.getADCMulti(perpendicularforceADCchannel); // Set steady state 
   delay(1000);
   extLED.assertIO(false);
 }
@@ -201,30 +216,26 @@ void loop() {
     // Make diagnostic LED bright
     extLED.assertIO(true);
     adc.calibrateMulti(400);
+    steadyStateADC = adc.getADCMulti(perpendicularforceADCchannel);
     // Make diagnostic LED low
     extLED.assertIO(false);
     // Reset flag
     calibrateADC = 0x0;
   }
-    Serial.print("Zero: ");
-    Serial.print(adc.getrawADCMulti(1));
-    Serial.print("\t Parallel: ");
-    Serial.print(forceSensorParallel);
-    Serial.print("\t Perpendicular: ");
-    Serial.println(forceSensorPerpendicular);
   // Set encoder position
-  turretEncoder = constrain(absoluteEncoder.getCtr(), minEncoder, maxEncoder); // Set the encoder between min and max. Constrain to prevent ovf
+  turretEncoder = absoluteEncoder.getCtr();
+  uint16_t constrainEncoder = constrain(turretEncoder, minEncoder, maxEncoder); // Set the encoder between min and max. Constrain to prevent ovf
   uint16_t tempTrim = turretEncoderTrim - minEncoder; // Get the distance between the trim value and the minimum recorded encoder value
-  uint32_t transPosition = turretEncoder > turretEncoderTrim ? // Check if the position is not currently between the determined zero and minimum
-                           turretEncoder : // Output is exactly as expected
-                           turretEncoder - minEncoder + maxEncoder; // Shift the value to be after the max to set the new heading
+  uint32_t transPosition = constrainEncoder > turretEncoderTrim ? // Check if the position is not currently between the determined zero and minimum
+                           constrainEncoder : // Output is exactly as expected
+                           constrainEncoder - minEncoder + maxEncoder; // Shift the value to be after the max to set the new heading
   turretPosition = transPosition - turretEncoderTrim; // Normalize everything so that the scale starts with the encoder at 0
   turretPosition = map(transPosition, turretEncoderTrim, maxEncoder + tempTrim, 0, maxEncoder - minEncoder); // Linearly map so 0 represents 0 and max is resolution
 
   // Set encoder head
   if(writeturretTrim & 0x1) {
     // Store current location as 0 degrees
-    turretEncoderTrim = turretEncoder;
+    turretEncoderTrim = constrainEncoder;
     // Reset flag to 0
     writeturretTrim = 0x0;
   }
@@ -292,6 +303,9 @@ void loop() {
       int16_t motorOut = ((int32_t)turretKp*error  >> Q_VALUE)+ 
                     ((int32_t)turretKd*deltaError >> Q_VALUE) + 
                     ((int32_t)turretKi*sumError >> Q_VALUE); 
+      // Limit max speed
+      motorOut = abs(motorOut) > turretMaxSpeed ? turretMaxSpeed : motorOut;
+      turretSpeed = motorOut; // Set speed equal to the current motor setting
       motor.setDirFreq(motorOut);
       oldTime = currentTime;
       prevError = error;
@@ -310,20 +324,42 @@ void loop() {
     else motor.setDirection(false);
     negTurretSpeed = abs(negTurretSpeed) > turretMaxSpeed ? turretMaxSpeed : abs(negTurretSpeed);
     motor.setFreq(negTurretSpeed);
-    motor.setFreq(turretSpeed);
     break;
     }
   case STOP:
     motor.enable(true);
     motor.brakeStop();
     break;
+  case PUSH: {
+    motor.enable(true);
+    int16_t error = perpendicularFiltered - steadyStateADC;
+    error = abs(error) < PUSH_THRESHOLD ? 0 : error;
+    int16_t motorOut = (int32_t)pushKp*error  >> Q_VALUE;
+    motor.setDirFreq(motorOut*8);
+    break;
+    }
   }
 
   // Get the current ADC values
-  forceSensorParallel = adc.getADCMulti(0); 
-  forceSensorPerpendicular =  adc.getADCMulti(2); 
-  // testADC();
-  // testPrint();
+  forceSensorParallel = adc.getADCMulti(parallelforceADCchannel); 
+  forceSensorPerpendicular =  adc.getADCMulti(perpendicularforceADCchannel); 
+
+  // Update force sensor through the filter periodically. Data is updated every 3 mS. Extra time prevents double reading a value
+  static uint32_t oldTime_DSP = 0;
+  if(millis() - oldTime_DSP > 4) {
+    // Add newest reading to the filter
+    addFilter(forceSensorParallel, &parallelFilter);
+    addFilter(forceSensorPerpendicular, &perpendicularFilter);
+    // Compute the filtered output
+    parallelFiltered = getAvgFilter(parallelFilter);
+    perpendicularFiltered = getAvgFilter(perpendicularFilter);
+    // Reset timers
+    oldTime_DSP = millis();
+  }
+
+  // Check debug registers
+  if(runTestSequence & 0x1) testSystems();
+  else if(runTestSequence & 0x2) testForceSensors();
 
   }
 
@@ -352,34 +388,15 @@ void testADC() {
 void testPrint() {
   static uint32_t oldTime = 0;
   if(millis() - oldTime > 1000) {
-    // Serial.println(*i2c_p.arrMap[0x0], HEX);
-    // eeprom.read(14, 16);
-    // Serial.println(turretEncoder);
-    // Serial.print("Encoder Trim: ");
-    // Serial.print(turretEncoderTrim);
-    // // Serial.print("\t Angle: ");
-    // Serial.print(turretPosition);
-    // Serial.print("\t");
-    // Serial.print(((float)turretPosition / 44690) * 360);
-    // Serial.print("\t");   
-    // Serial.print("Zero: ");
-    // Serial.print(adc.getrawADCMulti(1));
-    // Serial.print("\t Parallel: ");
-    // Serial.print(forceSensorParallel);
-    // Serial.print("\t Perpendicular: ");
-    // Serial.println(forceSensorPerpendicular);    // Serial.print("\t RAW Encoder Position: ");
-    // Serial.print(turretEncoder);
-    // Serial.print("\t");
-    // Serial.println(turretPosition);
-    // Serial.println(turretEncoder);
     Serial.println(writeEEPROM);
-    // static int iteration = 0;
-    // // LEDbrightness = iteration;
-    // iteration = iteration == 0x1F ? 0 : iteration + 1;
-    // LEDbrightness = iteration;
-    // Serial.println(LEDbrightness);
-    // LEDflush = 1;
+    oldTime = millis();
+  }
+}
 
+void printVal(uint16_t testVal) {
+  static uint32_t oldTime = 0;
+  if(millis() - oldTime > 1000) {
+    Serial.println(testVal);
     oldTime = millis();
   }
 }
@@ -393,21 +410,97 @@ void globalStop() {
 
 }
 
+void testSystems() {
+  static uint16_t testCounter = 0;
+  static uint32_t oldTime = 0;
+  extLED.assertIO(true);
+  if(millis() - oldTime > 2000) {
+    testCounter++;
+    oldTime = millis();
+  }
+  if(testCounter == 1) isGripper = 0; // Open gripper
+  else if(testCounter == 3) isGripper = 1; // Close gripper
+  else if(testCounter == 5) { // Start rotation
+    turretState = SPEED;
+    turretMaxSpeed = 0xFFFF;
+    turretSpeed = 1000;
+  }
+  else if(testCounter == 8) { // Turn on LEDs
+    LEDcolorPresets[0] = 0x0;
+    LEDcolorPresets[1] = 0x0;
+    LEDcolorPresets[2] = 0x00FF;
+    LEDcolorPresets[3] = 0x0;
+    LEDcolorPresets[4] = 0xFF00;
+    LEDcolorPresets[5] = 0x0;
+    LEDcolorPresets[6] = 0x0000;
+    LEDcolorPresets[7] = 0xFF;
+    testLED();
+  }
+  else if(testCounter == 9) { // Change rotation 
+    turretSpeed = (int16_t)-1000;
+  }
+  else if(testCounter == 13) {
+    turretState = BACKDRIVE;
+  }
+  else if(testCounter == 14) {
+    LEDcolors[0] = 0x0;
+    LEDcolors[1] = 0x0;
+    LEDcolors[2] = 0x0;
+    LEDcolors[3] = 0x0;
+    LEDflush = 1;
+  }
+  else if(testCounter == 15) {
+    turretMaxTolerance = 141;
+    turretState = POSITION;
+    turretDesPosition = 0;
+    turretKp = 5325;
+    turretKi = 0; 
+    turretKd = 0;
+  }
+  else if(testCounter == 20) {
+    turretDesPosition = halfEncoder;
+  }
+  else if(testCounter == 26) {
+    turretState = BACKDRIVE;
+    runTestSequence = 0x0;
+    testCounter = 0;
+    extLED.assertIO(false);
+  }
+  
+}
 
-// CODE FOR MIN / MAX Encoder
-// static uint16_t maxEnc = 10000; // 45395
-// static uint16_t minEnc = 10000; 
-// if(turretEncoder > maxEnc) {
-//   maxEnc = turretEncoder;
-//   Serial.print("Max: ");
-//   Serial.println(maxEnc);
-//   Serial.print("Min: ");
-//   Serial.println(minEnc);
-// }
-// else if(turretEncoder < minEnc) {
-//   minEnc = turretEncoder;
-//   Serial.print("Max: ");
-//   Serial.println(maxEnc);
-//   Serial.print("Min: ");
-//   Serial.println(minEnc);
-// }
+
+// Constants for the LED test that illuminates the string LEDs. Used for debug and kept separated from the rest of the code. 
+#define parallelFS 1000
+#define perpendicularFS 1000
+#define parallelThresh (parallelFS / (int)(numbLEDsRing >> 1))
+#define perpendicularThresh (perpendicularFS / (int)(numbLEDsRing >> 1))
+#define halfRing ((int)(numbLEDsRing >> 1))
+void testForceSensors() {
+  turretState = 3;
+  static uint32_t oldTime = 0;
+  if(millis() - oldTime > 25) {
+    int16_t parallelError = parallelFiltered - steadyStateADC;
+    int16_t perpendicularError = perpendicularFiltered - steadyStateADC;
+    bool parallelNegative = parallelError > 0 ? false : true;
+    bool perpendicularNegative = perpendicularError > 0 ? false : true;
+    int parallelnumbLEDs = parallelError / parallelThresh;
+    int perpendicularnumbLEDs = perpendicularError / perpendicularThresh; 
+    int16_t maxPerpendicular = perpendicularNegative ? halfRing : halfRing + perpendicularnumbLEDs;
+    int16_t minPerpendicular = perpendicularNegative ? halfRing + perpendicularnumbLEDs : halfRing;
+    int16_t maxParallel = parallelNegative ? halfRing : halfRing + parallelnumbLEDs;
+    int16_t minParallel  = parallelNegative ? halfRing + parallelnumbLEDs : halfRing;
+
+    for(int i = 1; i < numbLEDsRing + 1; i++) {
+      
+      uint8_t red = (i > minPerpendicular && i < maxPerpendicular) ? 255 : 0;
+      uint8_t blue = (i > minParallel&& i < maxParallel) ? 255 : 0;
+      stringLEDs[i - 1] = stringLEDs.MakeColor(red, 0, blue);
+    }
+    stringLEDs[12] = stringLEDs.MakeColor(0, 255, 0);
+    stringLEDs.Show(LEDbrightness);
+
+    oldTime = millis();
+  }
+}
+
